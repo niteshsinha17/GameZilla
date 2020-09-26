@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index Page</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+  </head>
+  <style>
+    body {
+      background: #eeeeee;
+    }
+  </style>
+  <body onload="loaded()">
+    <div class="navigation">
+      <div class="navigation__bar">
+        <div class="navigation__brand">Game <span>Zilla</span></div>
+        <span onclick="navigationBarHandler()" class="navigation__toggler">
+          <i id="navigation-icon" class="fas fa-chevron-right"></i
+        ></span>
+        {% block navigation_bar %} {% endblock navigation_bar %}
+      </div>
+    </div>
+
+    <div class="games">{% block game %} {% endblock game %}</div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script
+      src="https://kit.fontawesome.com/a0acbb8bf8.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/resize.js' %}"></script>
+  </body>
+</html>

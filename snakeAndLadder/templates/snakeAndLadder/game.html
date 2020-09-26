@@ -1,0 +1,464 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{% static 'css/snl.css' %}" />
+  <title>Document</title>
+</head>
+
+<body>
+  <div class="main">
+    <div class="chat">
+      <div class="chat__messages">
+        {% for message in messages %}
+        <div class="chat__message {% if message.player is not user %} other {% endif %}">
+          <h5 class="chat__sender">{{message.player}}</h5>
+          <p class="chat__msg {% if message.player is not user %} other {% endif %}">
+            {{message.text}}
+          </p>
+        </div>
+        {% endfor %}
+
+        <!-- <div class="chat__message">
+            <h5 class="chat__sender">Nitesh Sinha</h5>
+            <p class="chat__msg me">
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+              Voluptas, at corporis illo
+            </p>
+          </div>
+          <div class="chat__message other">
+            <h5 class="chat__sender">Nitesh Sinha</h5>
+            <p class="chat__msg other">
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+              Voluptas, at corporis illo
+            </p>
+          </div>
+          <div class="chat__message">
+            <h5 class="chat__sender">Nitesh Sinha</h5>
+            <p class="chat__msg me">
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+              Voluptas, at corporis illo
+            </p>
+          </div>
+          <div class="chat__message other">
+            <h5 class="chat__sender">Nitesh Sinha</h5>
+            <p class="chat__msg other">
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+              Voluptas, at corporis illo
+            </p>
+          </div>
+          <div class="chat__message">
+            <h5 class="chat__sender">Nitesh Sinha</h5>
+            <p class="chat__msg me">
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
+              Voluptas, at corporis illo
+            </p>
+          </div> -->
+      </div>
+      <div class="chat__send">
+        <input class="chat__input" type="text" placeholder="Message" />
+        <button class="chat__send-btn">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="SNL">
+      <div class="container">
+        <div class="SNL__board">
+          {% for player in players %}
+          <div id="p_{{player.player.username}}" class="SNL__player {{player.color}}"></div>
+          {% endfor %}
+        </div>
+
+        <div class="SNL__details">
+          <div class="detail">
+            Game Id :
+            <div class="id">{{game.game_id}}</div>
+          </div>
+
+          <div id="playing_detail" class="detail">
+            <div class="detail__heading">Current Move</div>
+            <div class="detail__wrapper">
+              <div class="detail__item">
+                Player :
+                <div id="current_player" class="name">
+                  {{game.current_player}}
+                </div>
+              </div>
+              <div class="detail__item">
+                Timer :
+                <div id="timer" class="time">6</div>
+              </div>
+            </div>
+          </div>
+          <div class="detail">
+            <ul class="players">
+              {% for player in players %}
+              <li class="players__item {{player.color}}">
+                <span class="players__name">{{player.player.username}}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="SNL__controls">
+            <div class="control">
+              <div>
+                <div class="control__exit">
+                  <button onclick="exit_confirm()" class="exit_btn">
+                    EXIT
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="control">
+              <div>
+                <button class="control__setting">
+                  <i class="fas fa-cog"></i>
+                </button>
+              </div>
+            </div>
+            <div class="control">
+              <div>
+                <button class="control__chat">
+                  <i class="fas fa-cog"></i>
+                </button>
+              </div>
+            </div>
+            <div class="control">
+              <div>
+                <button onclick="play()" class="control__play">
+                  <img src="{% static 'images/play.png' %}" alt="" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <!-- <script
+      src="https://kit.fontawesome.com/a0acbb8bf8.js"
+      crossorigin="anonymous"
+    ></script> -->
+  <script>
+    // INITIAL SETUP
+
+    const current_player = document.querySelector("#current_player");
+    const timer = document.querySelector("#timer");
+    // getting state and players json from response
+    players = JSON.parse("{{players_json|escapejs}}");
+    me = JSON.parse("{{me|escapejs}}")["me"];
+    console.log(players);
+    console.log(me);
+    var sent = false;
+
+    // defaults
+    const defaultChange = 60;
+    const defaultLeft = 10;
+    const defaultBottom = 10;
+
+    // socket initialization
+    const ROOM_NO = JSON.parse("{{room_id|escapejs}}")["room_id"];
+    console.log(ROOM_NO);
+    const socket = new WebSocket(
+      "ws://" + window.location.host + "/ws/SNL/" + ROOM_NO + "/"
+    );
+
+    // Actions
+    const player_changed_ = "player_changed";
+    const open_ = "open";
+    const move_ = "move";
+    const double_move_ = "double_move";
+    const started_ = "started";
+    const cant_move_ = 'cant_move'
+    // timer variables
+    var opened, change_player_timer, moved, no_respose_timer, time_interval = null;
+
+    // socket functions
+    socket.onmessage = function (e) {
+      const data = JSON.parse(e["data"]);
+      console.log(data);
+      clearTimeout(no_respose_timer);
+      switch (data["action"]) {
+        case move_:
+          move(data);
+          break;
+        case double_move_:
+          double_move(data);
+          break;
+
+        case player_changed_:
+          started(data);
+          break;
+
+        case open_:
+          open(data);
+          break;
+        case started_:
+          started(data);
+        case started_:
+          cant_move(data);
+
+        default:
+          break;
+      }
+    };
+    socket.onclose = function (e) {
+      console.log("onclose", e);
+    };
+    socket.onerror = function (e) {
+      console.log("onerror", e);
+    };
+    socket.onopen = function (e) {
+      console.log("onopen", e);
+      // no use test now
+      // socket.send(JSON.stringify({ action: "test" }));
+    };
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms))
+    }
+    async function show_timer() {
+      console.log('hereeeeerre');
+      for (let i = 1; i <= state.time; i++) {
+        timer.innerText = i;
+        await sleep(1000)
+
+      }
+    }
+
+
+    const cant_move = (data) => {
+      // show_dice()
+      started(data)
+    }
+
+
+
+    const show_state = () => {
+      // it will show state everytime
+      current_player.innerText = state.current_player;
+    };
+
+    // change player
+    // its runs when game is started
+    const started = (data) => {
+      state = data["state"];
+      show_state();
+      show_timer();
+      console.log(change_player_timer);
+      if (state.current_player == me) {
+        console.log('here');
+        sent = false;
+        change_player_timer = setTimeout(() => {
+          console.log('send');
+          sent = true;
+          change_player();
+        }, 12000);
+      } else {
+        no_respose_timer = setTimeout(() => {
+          socket.send(
+            JSON.stringify({ action: "check_state", old_state: state })
+          );
+        }, 16000);
+      }
+    };
+
+
+    const play = () => {
+      if (!sent) {
+        sent = false;
+        clearTimeout(change_player_timer);
+        socket.send(JSON.stringify({ action: "play" }));
+      } else {
+        console.log("wait for your turn");
+      }
+    };
+
+    const move = (data) => {
+      // show_dice()
+      state = data['state']
+      p = data['position']
+      player = data['player']
+      if (n <= 9) {
+        set_position(player, p, 0)
+      }
+      else {
+        b = Math.floor(p / 10)
+        reminder = p % 10
+        if (b % 2) {
+          if (reminder === 0) {
+            reminder = 10
+          }
+          set_position(player, reminder - 1)
+        }
+        else {
+
+          if (reminder === 0) {
+            reminder = 10
+          }
+          set_position(player, 10 - reminder)
+        }
+
+      }
+
+      started(data)
+    }
+    const set_position = (player, x, y) => {
+      let p = document.querySelector('#p_' + player)
+      p.style.left = `${x * defaultChange + defaultLeft}px`
+      p.style.bottom = `${y * defaultChange + defaultBottom}px`
+
+    }
+    const change_player = () => {
+      socket.send(JSON.stringify({ action: "change_player" }));
+    };
+    // play
+    // const play = () => {
+    //   if (state.current === state.me && state.sent === false) {
+    //     if (opened) {
+    //       clearTimeout(opened);
+    //     }
+    //     if (changed) {
+    //       clearTimeout(changed);
+    //     }
+    //     if (moved) {
+    //       clearTimeout(moved);
+    //     }
+    //     state.sent = true;
+    //     console.log("rolling");
+
+    //     msg = {
+    //       action: "play",
+    //     };
+    //     socket.send(JSON.stringify(msg));
+    //   } else {
+    //     console.log("wait for your turn");
+    //   }
+    // };
+
+    // timer function
+
+    const start_game = () => {
+      // check first all players are ready
+      if (state["start_width_me"]) {
+        state.sent = false;
+        console.log("1st my turn");
+        start_timer();
+        setTimeout(() => {
+          if (!state.sent) {
+            console.log("change player");
+            state.sent = true;
+            msg = {
+              action: "change_player",
+            };
+            socket.send(JSON.stringify(msg));
+          } else {
+            console.log("player moved");
+          }
+        }, 5000);
+      }
+    };
+
+    // functions
+
+    const open = (data) => {
+      current_player.innerHTML = data["player"];
+      state.current = data["player"];
+      rolling();
+      setTimeout(() => {
+        show_dice(data["number"]);
+        // move_player(data);
+        if (data["player"] === state.me) {
+          state.sent = false;
+          // msg to play again
+          console.log(" i got 6 now I can move");
+          console.log("move again");
+          opened = setTimeout(() => {
+            if (!state.sent) {
+              state.state = true;
+              msg = {
+                action: "change_player",
+              };
+              socket.send(JSON.stringify(msg));
+            } else {
+              console.log("player moved");
+            }
+          }, 5000);
+        }
+      }, 1000);
+    };
+
+    const show_dice = (n) => {
+      dice.textContent = n;
+    };
+    const rolling = () => {
+      dice.textContent = "Rolling";
+    };
+
+    const move_player = (player_name, n, c) => {
+      let p = document.querySelector(`#player_${player_name}`);
+      let player = players[c];
+      if (player.bottom % 2 === 0) {
+        if (n > positionConstrain.maxRightPosition - player.left) {
+          r = n - (positionConstrain.maxRightPosition - player.left);
+          move_right(
+            p,
+            player,
+            positionConstrain.maxRightPosition - player.left
+          );
+          move_up(p, player, r);
+          if (r - 1 > 0) {
+            move_left(p, player, r - 1);
+          }
+        } else {
+          console.log("here 1");
+          move_right(p, player, n);
+        }
+      } else {
+        if (player.left < n) {
+          r = n - player.left;
+          move_left(p, player, player.left);
+          move_up(p, player, r);
+          if (r - 1 > 0) {
+            move_right(p, player, r - 1);
+          }
+        } else {
+          move_left(p, player, n);
+        }
+      }
+    };
+
+    const set_x = (p, player) => {
+      p.style.left = `${player.left * defaultChange + defaultLeft}px`;
+    };
+    const set_y = (p, player) => {
+      p.style.bottom = `${player.bottom * defaultChange + defaultBottom}px`;
+    };
+    const move_right = (p, player, n) => {
+      console.log("here 2");
+      player.left += n;
+      set_x(p, player);
+    };
+
+    const move_left = (p, player, n) => {
+      player.left -= n;
+      set_x(p, player);
+    };
+
+    const move_up = (p, player, n) => {
+      if (n > 0) {
+        player.bottom += 1;
+        set_y(p, player);
+      }
+    };
+  </script>
+</body>
+
+</html>

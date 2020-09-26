@@ -1,0 +1,44 @@
+{% extends "game/home_base.html" %} {% block navigation_bar %}
+
+<ul class="navigation__list">
+  <li class="navigation__item">
+    <a href="" class="navigation__link">{{user.username}}</a>
+  </li>
+  <li class="navigation__item">
+    <a href="" class="navigation__link active">Home</a>
+  </li>
+  <li class="navigation__item">
+    <a href="" class="navigation__link">Report</a>
+  </li>
+  <li class="navigation__item">
+    <a href="" class="navigation__link">Something</a>
+  </li>
+  <li class="navigation__sub-item">Setting</li>
+  <li class="navigation__item">
+    <a href="" class="navigation__link">Password Reset</a>
+  </li>
+  <li class="navigation__item">
+    <a href="" class="navigation__link">Change Email</a>
+  </li>
+  <li class="navigation__item">
+    <a href="" class="navigation__link">Logout</a>
+  </li>
+</ul>
+{% endblock navigation_bar %} {% block game %}
+
+<div class="stage">
+  <div class="dot-floating"></div>
+</div>
+
+{% for game in games %}
+<div class="g-card">
+  <a class="g-card__link" href="{% url 'host' game.code%}">
+    <img class="g-card__img" src="{{game.img.url}}" alt="img"
+  /></a>
+
+  <div class="g-card__name">
+    <h4>{{game.game_name}}</h4>
+  </div>
+</div>
+
+{% endfor %} {% endblock game %}

@@ -1,0 +1,458 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+  </head>
+  <body>
+    <!-- //////////////////////////////// -->
+    <!-- //////////////////////////////// -->
+
+    <div class="room">
+      <button onclick="start()" class="room__start">Start</button>
+      <button onclick="leave()" class="room__leave">LEAVE</button>
+      <div
+        style="background: url({{selected_game.img.url}});"
+        class="room__bg"
+      ></div>
+
+      <div class="room__game_detail">
+        <h2 class="room__heading">
+          {{selected_game.game_name}}({{selected_game.max_player}})
+        </h2>
+        <span>
+          <i onclick="show_detail()" id="detail_icon" class="fas fa-home"></i>
+          <i id="setting" onclick="show_gd()" class="fas fa-cog"></i
+        ></span>
+      </div>
+      <div class="container">
+        <div class="row">
+          <div class="room__detail">
+            <span onclick="hide_detail()" class="detail__cross"></span>
+            <h3 class="room__sub-heading">Room detail</h3>
+            <ul class="detail">
+              <li class="detail__item">
+                Game Id : <span class="bold">Nitesh002</span>
+              </li>
+              <li class="detail__item">
+                Hosted By : <span class="bold">Nitesh Sinha</span>
+              </li>
+              <li class="detail__item">
+                Password : <span class="bold">abcd012</span>
+              </li>
+              <li class="detail__item">
+                Members Joined : <span class="bold">2</span>
+              </li>
+              <li class="detail__item">
+                Hosted By : <span class="bold">Nitesh Sinha</span>
+              </li>
+            </ul>
+
+            <button onclick="copy()" class="room__share">Invite Link</button>
+          </div>
+
+          <div class="members">
+            <h3 class="members__heading">Players Joined</h3>
+            <ul class="members__list">
+              {% for member in members %}
+              <li id="r_{{member}}" class="members__item">
+                <div class="members_name">
+                  {{member}}
+                  <span class="online">
+                    {% if member.online %} online {% else %} offline {% endif %}
+                  </span>
+                </div>
+                <div class="members__btns">
+                  <button id="s_{{member}}" class="members__ready">
+                    {% if member.ready %} READY {% else%} NOT READY {% endif %}
+                  </button>
+                  {% if member.host%} {% else %}
+                  <button
+                    onclick="remove('{{member}}')"
+                    class="members__remove"
+                  >
+                    Remove
+                  </button>
+                  {% endif %}
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="games_dropdown">
+        <div class="games_dropdown__top">
+          <h2 class="games_dropdown__heading">Change Game</h2>
+          <span onclick="hide_gd()" class="games_dropdown__cross"></span>
+        </div>
+        <div class="games">
+          {% for game in games %}
+          <div id="g_{game.code}" class="g-card">
+            <img
+              id="{{game.code}}"
+              onclick="change(event)"
+              class="g-card__img {% if game.code == selected_game.code %} selected {% endif %}"
+              src="{{game.img.url}} "
+              alt=""
+            />
+            <div class="g-card__name">
+              <h4>{{game.game_name}}({{game.max_player}})</h4>
+            </div>
+          </div>
+
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <!-- ////////////////////////////////// -->
+    <!-- ////////////////////////////////// -->
+    <script
+      src="https://kit.fontawesome.com/a0acbb8bf8.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script>
+      const games = document.querySelectorAll(".g-card");
+      const games_wrapper = document.querySelector(".games");
+      const arrange_games = (n) => {
+        console.log("arrage");
+        row_ = Math.floor(games.length / n);
+        extra = games.length % n;
+        var count = 0;
+
+        for (let i = 0; i < row_; i++) {
+          let row = document.createElement("div");
+          row.setAttribute("class", "row");
+          for (let i = 0; i < n; i++) {
+            row.appendChild(games[count]);
+            count++;
+          }
+          games_wrapper.appendChild(row);
+        }
+
+        if (extra > 0) {
+          let row = document.createElement("div");
+          row.setAttribute("class", "row");
+          while (count < games.length) {
+            row.appendChild(games[count]);
+            count++;
+          }
+
+          games_wrapper.appendChild(row);
+        }
+
+        games.forEach((element) => {
+          $(element).show();
+        });
+      };
+
+      // ////////////////
+      //  room detail
+      // ///////////////
+
+      const room_detail = document.querySelector(".room__detail");
+
+      const show_detail = () => {
+        $(room_detail).addClass("show_detail");
+      };
+
+      const hide_detail = () => {
+        $(room_detail).removeClass("show_detail");
+      };
+
+      arrange_games(3);
+
+      // /////////////////////
+      //  show message
+      // ////////////////////
+
+      const show_message = (msg) => {
+        var m = document.createElement("div");
+        m.innerText = msg;
+        m.setAttribute("class", "message");
+        document.querySelector(".room").appendChild(m);
+        setTimeout(() => {
+          m.remove();
+        }, 2000);
+      };
+      var text = "Hye Come And play with me On Gamezilla";
+      const copy = () => {
+        var textArea = document.createElement("textarea");
+        textArea.value = text;
+
+        // Avoid scrolling to bottom
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        textArea.style.zIndex = "100";
+        textArea.style.display = "none";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand("copy");
+
+        show_message("link copied");
+      };
+
+      // ///////////////////
+      //  games dropdown
+      // //////////////////
+      const setting = document.querySelector("#setting");
+      const g_d = document.querySelector(".games_dropdown");
+      const show_gd = () => {
+        $(setting).addClass("setting_active");
+        $(g_d).addClass("games_dropdown-active");
+      };
+
+      const hide_gd = () => {
+        $(setting).removeClass("setting_active");
+        $(g_d).removeClass("games_dropdown-active");
+      };
+      // STATE
+      let state = null;
+      // let state = {
+      //   me: null,
+      //   members_ready: null,
+      //   can_start: false,
+      //   max_member: null,
+      //   members_joined: null,
+      //   game:null,
+      //   room_no:no,
+      // };
+
+      //   getting state from response
+      state = JSON.parse("{{state|escapejs}}");
+      const ROOM_NO = state.room_no;
+      const error_ = document.querySelector(".error");
+      const members = document.querySelector(".members__list");
+      console.log(ROOM_NO);
+      // socket initiallisation
+      const socket = new WebSocket(
+        "ws://" + window.location.host + "/ws/room/" + ROOM_NO + "/"
+      );
+
+      // Action types
+      const add_member_ = "add_member";
+      const member_removed_ = "member_removed";
+      const started_ = "started";
+      const ready_ = "ready";
+      const game_changed_ = "game_changed";
+      const online_ = "online";
+      const leaved_ = "leaved";
+      // socket functions
+      socket.onmessage = function (e) {
+        data = JSON.parse(e.data);
+        switch (data["action"]) {
+          case add_member_:
+            console.log("add member");
+            add_member(data);
+            break;
+          case member_removed_:
+            console.log("remove member");
+            remove_member(data);
+            break;
+          case started_:
+            console.log("started");
+            started(data);
+            break;
+          case ready_:
+            console.log("ready");
+            ready(data);
+            break;
+          case game_changed_:
+            console.log("game changed");
+            game_changed(data);
+            break;
+
+          case online_:
+            console.log("online");
+            online(data["member"], data["status"]);
+            break;
+          case leaved_:
+            leaved(data);
+            break;
+
+          default:
+            break;
+        }
+      };
+
+      socket.onclose = function (e) {
+        console.log("onclose", e);
+      };
+      socket.onerror = function (e) {
+        console.log("onerror", e);
+      };
+      socket.onopen = function (e) {
+        console.log("onopen", e);
+      };
+
+      // ////////////////////////////
+      //   Recieving functions
+      // ////////////////////////////
+
+      //  Game started
+      const started = (data) => {
+        if (data["can_start"]) {
+          window.location.href = data["url"];
+        } else {
+          show_message(data["error"]);
+        }
+      };
+
+      // leaved
+      const leaved = (data) => {
+        if (data["member"] === state.me || data["member"] === "all") {
+          window.location.href = "/";
+        }
+        remove_member(data);
+      };
+
+      // add_member
+      const add_member = (data) => {
+        if (data["member"] === state.me) {
+          return;
+        }
+
+        let name_div = document.createElement("div");
+        $(name_div).addClass("members__name");
+        let btn_div = document.createElement("div");
+        $(btn_div).addClass("members__btns");
+        let s = document.createElement("span");
+        $(s).addClass("online");
+        let ready_btn = document.createElement("button");
+        $(ready_btn).addClass("members__ready");
+        ready_btn.setAttribute("id", "s_" + data["member"]);
+
+        if (data["ready"]) {
+          ready_btn.innerText = "READY";
+        } else {
+          ready_btn.innerText = "NOT READY";
+        }
+
+        name_div.innerHTML = data["member"];
+        name_div.appendChild(s);
+        let li = document.createElement("li");
+        li.setAttribute("id", "r_" + data["member"]);
+        li.appendChild(name_div);
+        $(li).addClass("members__item");
+        btn_div.appendChild(ready_btn);
+        $(li).addClass("members__item");
+        if (!data["host"]) {
+          console.log("add remove");
+          let remove_btn = document.createElement("button");
+          $(remove_btn).addClass("members__remove");
+          remove_btn.innerHTML = "remove";
+          remove_btn.setAttribute(
+            "onclick",
+            "remove(" + "'" + data["member"] + "'" + ")"
+          );
+          btn_div.appendChild(remove_btn);
+        }
+        li.appendChild(btn_div);
+        members.appendChild(li);
+      };
+      // online status
+      const online = (member, status) => {
+        let id = "#r_" + member + " .online";
+        console.log(id);
+        if (status) {
+          document.querySelector(id).innerText = "online";
+        } else {
+          document.querySelector(id).innerText = "offline";
+        }
+      };
+
+      // Remove member
+      const remove_member = (data) => {
+        $("#r_" + data["member"]).remove();
+        if (data["was_ready"]) {
+          state.members_ready -= 1;
+        }
+        state.members_removed -= 1;
+      };
+
+      // show_ready
+      const ready = (data) => {
+        if (data["state"]) {
+          document.getElementById("s_" + data["member"]).innerText = "READY";
+        } else {
+          document.getElementById("s_" + data["member"]).innerText =
+            "NOT READY";
+        }
+      };
+      // game changed
+      const game_changed = (data) => {
+        if (!data["changed"]) {
+          show_message(data["error"]);
+          return;
+        }
+
+        room.style.background = "url(" + data["url"] + ")";
+        document.querySelector(".room__heading").innerText =
+          data["name"] + "(" + data["max_members"] + ")";
+        state.game_code = data["new_code"];
+        $(document.getElementById(data["old_code"])).removeClass("selected");
+        $(document.getElementById(data["new_code"])).addClass("selected");
+      };
+
+      // //////////////////////////
+      //   Sending Functions
+      // //////////////////////////
+
+      // remove a member
+      const remove = (member_name) => {
+        socket.send(
+          JSON.stringify({
+            action: "remove_player",
+            member: member_name,
+          })
+        );
+      };
+
+      // leave
+      const leave = () => {
+        console.log("leave");
+        socket.send(JSON.stringify({ action: "leave" }));
+      };
+
+      // start game
+      const start = () => {
+        socket.send(JSON.stringify({ action: "start" }));
+      };
+
+      // ///////////////////////
+      // Frontend functions
+      // ///////////////////////
+
+      // ///////////
+      //  change game
+      // ////////////
+
+      const bg_games = document.querySelectorAll(".g-card__img");
+      const room = document.querySelector(".room__bg");
+
+      const change = (event) => {
+        console.log(event.target.id);
+        socket.send(
+          JSON.stringify({
+            action: "change_game",
+            url: event.target.src,
+            code: event.target.id,
+          })
+        );
+      };
+    </script>
+  </body>
+</html>
+
+<!-- r_{{memeber}}   === button to remove any member((it is for id of btn)) -->
+
+<!-- s_{{member}} === this id is used to show ready state of member -->

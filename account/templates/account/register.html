@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Account</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+  </head>
+  <body>
+    <div class="background">
+      <div class="background__nav">
+        <a class="background__brand"
+          >Gamezilla
+          <span class="background__detail"
+            >Online <span class="background__divider"></span> Multiplayer
+            <span class="background__divider"></span> Game</span
+          ></a
+        >
+
+        <div class="background__login">
+          <form method="POST" class="login">
+            {% csrf_token %}
+
+            <input type="hidden" name="form_type" value="login" />
+            {% for field in login_form %}
+            <!-- <input
+              type="{{field.html_name}}"
+              name="{{field.html_name}}"
+              placeholder="{{field.label}}"
+              class="login__input"
+            /> -->{{field}} {% endfor %}
+            <input type="submit" value="Login" class="login__submit" />
+          </form>
+        </div>
+      </div>
+      <div class="background__slider">
+        <div id="ss1" class="s_slider s-active">
+          <div class="s_slider__content">
+            <h1 class="s_slider__heading">Mulyiplayer Feature</h1>
+            <p class="s_slider__para">
+              Invite your friends and enjoy the game together
+            </p>
+          </div>
+        </div>
+        <div id="ss2" class="s_slider">
+          <div style="color: white" class="s_slider__content">
+            <h1 style="color: white" class="s_slider__heading">
+              Gossip While Playing
+            </h1>
+            <p class="s_slider__para">
+              Special feature in game gives you an option to chat while playing
+            </p>
+          </div>
+        </div>
+        <div id="ss3" class="s_slider">
+          <div style="color: white" class="s_slider__content">
+            <h1 style="color: white" class="s_slider__heading">
+              Welcome as Guest
+            </h1>
+            <p class="s_slider__para">
+              Partially access as a Guest login, no need to add Gmail
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="register {% if show %} active {% endif %}">
+        <div class="register__up">
+          <a onclick="show_register()" class="register__navigator"> Regiter </a>
+        </div>
+        <div class="register__forms">
+          <div
+            id="form"
+            class="register__form {% if show %} active {% endif %}"
+          >
+            <h2 class="register__heading">Register</h2>
+            <p class="register__para">Its simple and fast.</p>
+            <div class="register__divider"></div>
+            <form method="POST">
+              {% csrf_token%}
+
+              <input type="hidden" name="form_type" value="register" />
+              {% for field in registration_form %}
+              <p>{{field.errors}}</p>
+              <!-- <input
+                type="{{field.html_name}} "
+                required
+                name="{{field.html_name}}"
+                class="register__input"
+                placeholder="{{field.label}}"
+              /> -->
+              {{field}} {% endfor %}
+              <div class="register__btns">
+                <input type="submit" class="register__btn" value="Sign Up" />
+                <p class="register__forget">Forget Password</p>
+              </div>
+            </form>
+          </div>
+          <!-- <div id="guest_form" class="register__form">
+            <h2 class="register__heading">Register As Guest</h2>
+            <div class="register__divider"></div>
+            <form method="POST">
+              {% csrf_token%} {% for field in guest_form %}
+              <p>{{field.errors}}</p>
+              <input
+                type="{{field.html_name}} "
+                required
+                class="register__input"
+                placeholder="{{field.label}}"
+              />
+              {% endfor %}
+              <input
+                type="submit"
+                class="register__btn"
+                value="Guest Sign Up"
+              />
+            </form>
+          </div> -->
+        </div>
+
+        <div class="register__down">
+          <a onclick="hide_register()" class="register__navigator">Login</a>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script
+      src="https://kit.fontawesome.com/a0acbb8bf8.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="{% static 'js/main.js' %}"></script>
+  </body>
+</html>

@@ -1,0 +1,436 @@
+.main {
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (min-width: 700px) {
+  .main {
+    height: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .main {
+    height: 100vh;
+  }
+}
+
+.SNL {
+  height: 100%;
+  position: relative;
+}
+
+.SNL .container {
+  display: flex;
+  padding: 0px 10px;
+  height: 100%;
+  justify-content: space-between;
+  width: auto;
+}
+
+.SNL__board {
+  background: url(../images/snakeBoard.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+  height: 300px;
+  width: 300px;
+  margin: auto;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.SNL__player {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: white;
+  bottom: 5px;
+  left: 5px;
+  border-radius: 50%;
+}
+
+.SNL__details {
+  position: relative;
+  width: 260px;
+  margin: auto;
+  display: flex;
+  height: fit-content;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.SNL__controls {
+  position: absolute;
+  bottom: -22px;
+  right: 0px;
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 700px) {
+  .SNL .container {
+    flex-direction: column;
+  }
+  .SNL__board {
+    height: 600px;
+    width: 600px;
+    margin-top: 20px;
+  }
+  .SNL__details {
+    margin: 10px;
+    font-size: 16px;
+    width: 100%;
+    text-align: center;
+  }
+  .SNL__player {
+    height: 40px;
+    width: 40px;
+    bottom: 10px;
+    left: 10px;
+  }
+  .SNL__controls {
+    position: fixed;
+    bottom: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .SNL .container {
+    flex-direction: row;
+  }
+  .SNL__details {
+    margin: auto;
+    max-width: 550px;
+  }
+  .SNL__controls {
+    position: absolute;
+    bottom: -50px;
+    right: 100px;
+  }
+  .SNL__board {
+    margin-top: auto;
+  }
+}
+
+.detail__heading {
+  margin: 10px 0px;
+  color: red;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.detail__item {
+  margin: 5px 0px;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 1.3px;
+}
+
+.id {
+  display: inline-block;
+}
+
+.name {
+  display: inline-block;
+  font-weight: 500;
+}
+
+.time {
+  display: inline-block;
+  font-weight: 500;
+}
+
+.control {
+  margin-right: 15px;
+}
+
+.control button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.control img {
+  width: 28px;
+  height: 28px;
+}
+
+.control .exit_btn {
+  padding: 5px 20px;
+  background: none;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: red;
+  border: 1px solid red;
+}
+
+@media (min-width: 700px) {
+  .control button {
+    background: none;
+    border: none;
+    font-size: 30px;
+  }
+  .control img {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+.RED {
+  background: #ff6c6c;
+}
+
+.YELLOW {
+  background: #ffff6b;
+}
+
+.BLUE {
+  background: #9e9eff;
+}
+
+.GREEN {
+  background: #93ff93;
+}
+
+.players {
+  padding: 10px 0px;
+}
+
+.players__list {
+  list-style: none;
+  text-align: center;
+}
+
+.players__list .left {
+  background: #8c8c8c;
+  color: white;
+}
+
+.players__list .active {
+  background: black;
+}
+
+.players__item {
+  padding: 6px;
+  width: 80%;
+  margin: 10px 0px;
+  display: flex;
+  border-radius: 40px;
+  align-items: center;
+  justify-content: space-around;
+  font-size: 15px;
+}
+
+.players__rank {
+  width: 40px;
+}
+
+.players #playing_detail {
+  position: relative;
+  top: 0;
+  left: 0;
+  background: none;
+  padding: auto;
+}
+
+@media (min-width: 700px) {
+  .players__item {
+    width: 60%;
+    margin: 10px auto;
+    padding: 12px 0px;
+  }
+}
+
+@media (min-width: 700px) {
+  #playing_detail {
+    position: fixed;
+    top: 20%;
+    left: 0px;
+    background: #eeeeeeeb;
+    padding: 10px 25px;
+  }
+}
+
+@media (min-width: 1024px) {
+  #playing_detail {
+    position: relative;
+    top: 0;
+    left: 0px;
+    background: none;
+    padding: auto;
+  }
+}
+
+button {
+  outline: none;
+}
+
+.chat_btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  height: 40px;
+  width: 40px;
+  background: #c03c3c;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.chat_btn:hover {
+  background: #c32525;
+}
+
+.chat {
+  z-index: 10;
+  position: fixed;
+  bottom: 0px;
+  background: white;
+  left: -100%;
+  width: 70%;
+  max-width: 350px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 10px 0px 10px #0000002e;
+  transition-duration: 1.5s;
+  transition-timing-function: ease;
+}
+
+.chat__messages {
+  height: 100%;
+  overflow: scroll;
+}
+
+.chat__messages::-webkit-scrollbar {
+  display: none;
+}
+
+.chat__messages .other {
+  align-items: flex-end;
+}
+
+.chat .other {
+  align-items: flex-end;
+}
+
+.chat__message {
+  padding: 1px 10px;
+  border-radius: 17px;
+  display: flex;
+  color: black;
+  flex-direction: column;
+}
+
+.chat__message .me {
+  background-color: #b0bdff;
+}
+
+.chat__message .other {
+  background-color: #eee;
+}
+
+.chat__sender {
+  margin: 0px 6px;
+}
+
+.chat__msg {
+  padding: 12px 6px;
+  border-radius: 17px;
+  max-width: 200px;
+  font-size: 0.8rem;
+  width: fit-content;
+  color: black;
+}
+
+.chat__send {
+  width: 100%;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0px;
+}
+
+.chat__input {
+  outline: none;
+  background: #eee;
+  padding: 12px;
+  width: 70%;
+  border: none;
+  border-radius: 20px;
+}
+
+.chat__send-btn {
+  height: 40px;
+  width: 40px;
+  outline: none;
+  font-size: 1rem;
+  border-radius: 50%;
+  border: none;
+  margin-left: 10px;
+  background: #60a360;
+}
+
+.chat__send-btn:hover {
+  background: #3f823f;
+}
+
+.show_chat {
+  left: 0px;
+}
+
+* {
+  padding: 0%;
+  margin: 0%;
+  font-family: roboto;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+a {
+  font-size: 15px;
+}
+
+h1 {
+  font-size: 85px;
+}
+
+@media (min-width: 1024px) {
+  h2 {
+    font-size: 35px;
+  }
+}
+
+@media (min-width: 680px) {
+  h3 {
+    font-size: 26px;
+  }
+}
+
+@media (min-width: 1024px) {
+  h3 {
+    font-size: 40px;
+  }
+}
+
+h4 {
+  font-size: 18px;
+}
+
+.row {
+  display: flex;
+}
+
+.container {
+  width: 80%;
+  margin: auto;
+}

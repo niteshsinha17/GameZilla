@@ -1,464 +1,584 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'css/snl.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+    <title>Document</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="{% static 'css/snl.css' %}" />
-  <title>Document</title>
-</head>
-
-<body>
-  <div class="main">
+  <body>
     <div class="chat">
       <div class="chat__messages">
         {% for message in messages %}
-        <div class="chat__message {% if message.player is not user %} other {% endif %}">
+        <div
+          class="chat__message {% if message.player is not user %} other {% endif %}"
+        >
           <h5 class="chat__sender">{{message.player}}</h5>
-          <p class="chat__msg {% if message.player is not user %} other {% endif %}">
+          <p
+            class="chat__msg {% if message.player is not user %} other {% endif %}"
+          >
             {{message.text}}
           </p>
         </div>
         {% endfor %}
-
-        <!-- <div class="chat__message">
-            <h5 class="chat__sender">Nitesh Sinha</h5>
-            <p class="chat__msg me">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-              Voluptas, at corporis illo
-            </p>
-          </div>
-          <div class="chat__message other">
-            <h5 class="chat__sender">Nitesh Sinha</h5>
-            <p class="chat__msg other">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-              Voluptas, at corporis illo
-            </p>
-          </div>
-          <div class="chat__message">
-            <h5 class="chat__sender">Nitesh Sinha</h5>
-            <p class="chat__msg me">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-              Voluptas, at corporis illo
-            </p>
-          </div>
-          <div class="chat__message other">
-            <h5 class="chat__sender">Nitesh Sinha</h5>
-            <p class="chat__msg other">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-              Voluptas, at corporis illo
-            </p>
-          </div>
-          <div class="chat__message">
-            <h5 class="chat__sender">Nitesh Sinha</h5>
-            <p class="chat__msg me">
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-              Voluptas, at corporis illo
-            </p>
-          </div> -->
       </div>
       <div class="chat__send">
         <input class="chat__input" type="text" placeholder="Message" />
         <button class="chat__send-btn">
-          <i class="fas fa-paper-plane"></i>
+          <img src="{% static 'icons/send.png' %}" alt="" />
         </button>
       </div>
     </div>
-
     <div class="SNL">
-      <div class="container">
-        <div class="SNL__board">
+      <div class="SNL__card">
+        <div class="game_board">
           {% for player in players %}
-          <div id="p_{{player.player.username}}" class="SNL__player {{player.color}}"></div>
+          <div
+            id="p_{{player.player.username}}"
+            class="SNL__player {{player.color}}"
+          ></div>
           {% endfor %}
-        </div>
 
+          <div class="SNL__dice"></div>
+        </div>
+      </div>
+      <div class="SNL__card">
         <div class="SNL__details">
-          <div class="detail">
-            Game Id :
+          <div class="SNL__id">
+            GAME ID:
             <div class="id">{{game.game_id}}</div>
           </div>
 
-          <div id="playing_detail" class="detail">
-            <div class="detail__heading">Current Move</div>
-            <div class="detail__wrapper">
-              <div class="detail__item">
-                Player :
-                <div id="current_player" class="name">
-                  {{game.current_player}}
-                </div>
-              </div>
-              <div class="detail__item">
-                Timer :
-                <div id="timer" class="time">6</div>
-              </div>
+          <div class="SNL__states">
+            <div class="SNL__state">
+              TURN
+              <div class="current_player">{{game.current_player}}</div>
+            </div>
+            <div class="SNL__state">
+              TIME LEFT
+              <div class="timer">12</div>
             </div>
           </div>
-          <div class="detail">
-            <ul class="players">
-              {% for player in players %}
-              <li class="players__item {{player.color}}">
-                <span class="players__name">{{player.player.username}}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div class="SNL__controls">
-            <div class="control">
-              <div>
-                <div class="control__exit">
-                  <button onclick="exit_confirm()" class="exit_btn">
-                    EXIT
-                  </button>
-                </div>
+          <ul class="SNL__players">
+            {% for player in players %}
+            <li class="player">
+              {% if player.rank %} {% endif %}
+              <div class="player__rank">
+                <img src="{% static 'icons/First.png' %}" alt="" />
               </div>
-            </div>
-            <div class="control">
-              <div>
-                <button class="control__setting">
-                  <i class="fas fa-cog"></i>
-                </button>
+              <div class="player__name RED">{{player.player.username}}</div>
+              <div class="player__online">
+                {% if player.online %} online {% else %} offine {% endif %}
               </div>
-            </div>
-            <div class="control">
-              <div>
-                <button class="control__chat">
-                  <i class="fas fa-cog"></i>
-                </button>
-              </div>
-            </div>
-            <div class="control">
-              <div>
-                <button onclick="play()" class="control__play">
-                  <img src="{% static 'images/play.png' %}" alt="" />
-                </button>
-              </div>
-            </div>
-          </div>
+            </li>
+            {% endfor %}
+          </ul>
+
+          <ul class="settings">
+            <li class="settings__item">
+              <button id="exit" class="settings__btn">
+                <img src="{% static 'icons/exit.png' %}" alt="" />
+              </button>
+            </li>
+            <li class="settings__item">
+              <button
+                onclick="handle_sound()"
+                id="sound"
+                class="on settings__btn"
+              >
+                <img src="{% static 'icons/sound.png' %}" alt="" />
+              </button>
+            </li>
+            <li class="settings__item">
+              <button
+                onclick="handle_music()"
+                id="music"
+                class="settings__btn on"
+              >
+                <img src="{% static 'icons/music.png' %}" alt="" />
+              </button>
+            </li>
+            <li class="settings__item">
+              <button onclick="handle_chat()" id="chat" class="settings__btn">
+                <img src="{% static 'icons/msg2.png' %}" alt="" />
+              </button>
+            </li>
+            <li class="settings__item">
+              <button onclick="play()" id="play" class="settings__btn">
+                <img src="{% static 'icons/play.png' %}" alt="" />
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <ul class="SNL__notification"></ul>
+
+      <div class="exit">
+        <div class="exit__wrapper">
+          <h3 class="exit__heading">Are you Confirm?</h3>
+          <ul class="exit__list">
+            <li class="exit__item">
+              <button onclick="leave()" class="leave exit__btn">
+                <img src="{% static 'icons/correct.png' %}" alt="" />
+              </button>
+              <div class="exit__option">YES</div>
+            </li>
+            <li class="exit__item">
+              <button class="stay exit__btn">
+                <img src="{% static 'icons/cross.png' %}" alt="" />
+              </button>
+              <div class="exit__option">NO</div>
+            </li>
+          </ul>
+          <p class="exit__para">
+            If Yes, You will not be able to join this game again
+          </p>
         </div>
       </div>
     </div>
-  </div>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-  <!-- <script
-      src="https://kit.fontawesome.com/a0acbb8bf8.js"
-      crossorigin="anonymous"
-    ></script> -->
-  <script>
-    // INITIAL SETUP
+    <!-- ////////////////////////////////////////// -->
+    <!-- /////////////////////////////////////////// -->
 
-    const current_player = document.querySelector("#current_player");
-    const timer = document.querySelector("#timer");
-    // getting state and players json from response
-    players = JSON.parse("{{players_json|escapejs}}");
-    me = JSON.parse("{{me|escapejs}}")["me"];
-    console.log(players);
-    console.log(me);
-    var sent = false;
+    <audio
+      style="display: none"
+      loop="True"
+      id="snl_music"
+      controls
+      src="{% static 'music/snl_music.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      loop="True"
+      id="snl_music"
+      controls
+      src="{% static 'music/ladder.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      loop="True"
+      id="snl_music"
+      controls
+      src="{% static 'music/snake.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      id="sound_notification"
+      controls
+      src="{% static 'music/notification.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      id="sound_notification"
+      controls
+      src="{% static 'music/win.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-    // defaults
-    const defaultChange = 60;
-    const defaultLeft = 10;
-    const defaultBottom = 10;
+    <script>
+      // INITIAL SETUP
+      var music_stoped = false;
+      var sound_stoped = false;
+      var music;
+      const current_player = document.querySelector(".current_player");
+      const timer = document.querySelector(".timer");
+      const dice = document.querySelector(".SNL__dice");
+      // getting state and players json from response
+      players = JSON.parse("{{players_json|escapejs}}");
+      me = JSON.parse("{{me|escapejs}}")["me"];
+      var sent = false;
 
-    // socket initialization
-    const ROOM_NO = JSON.parse("{{room_id|escapejs}}")["room_id"];
-    console.log(ROOM_NO);
-    const socket = new WebSocket(
-      "ws://" + window.location.host + "/ws/SNL/" + ROOM_NO + "/"
-    );
-
-    // Actions
-    const player_changed_ = "player_changed";
-    const open_ = "open";
-    const move_ = "move";
-    const double_move_ = "double_move";
-    const started_ = "started";
-    const cant_move_ = 'cant_move'
-    // timer variables
-    var opened, change_player_timer, moved, no_respose_timer, time_interval = null;
-
-    // socket functions
-    socket.onmessage = function (e) {
-      const data = JSON.parse(e["data"]);
-      console.log(data);
-      clearTimeout(no_respose_timer);
-      switch (data["action"]) {
-        case move_:
-          move(data);
-          break;
-        case double_move_:
-          double_move(data);
-          break;
-
-        case player_changed_:
-          started(data);
-          break;
-
-        case open_:
-          open(data);
-          break;
-        case started_:
-          started(data);
-        case started_:
-          cant_move(data);
-
-        default:
-          break;
-      }
-    };
-    socket.onclose = function (e) {
-      console.log("onclose", e);
-    };
-    socket.onerror = function (e) {
-      console.log("onerror", e);
-    };
-    socket.onopen = function (e) {
-      console.log("onopen", e);
-      // no use test now
-      // socket.send(JSON.stringify({ action: "test" }));
-    };
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms))
-    }
-    async function show_timer() {
-      console.log('hereeeeerre');
-      for (let i = 1; i <= state.time; i++) {
-        timer.innerText = i;
-        await sleep(1000)
-
-      }
-    }
-
-
-    const cant_move = (data) => {
-      // show_dice()
-      started(data)
-    }
-
-
-
-    const show_state = () => {
-      // it will show state everytime
-      current_player.innerText = state.current_player;
-    };
-
-    // change player
-    // its runs when game is started
-    const started = (data) => {
-      state = data["state"];
-      show_state();
-      show_timer();
-      console.log(change_player_timer);
-      if (state.current_player == me) {
-        console.log('here');
-        sent = false;
-        change_player_timer = setTimeout(() => {
-          console.log('send');
-          sent = true;
-          change_player();
-        }, 12000);
-      } else {
-        no_respose_timer = setTimeout(() => {
-          socket.send(
-            JSON.stringify({ action: "check_state", old_state: state })
-          );
-        }, 16000);
-      }
-    };
-
-
-    const play = () => {
-      if (!sent) {
-        sent = false;
-        clearTimeout(change_player_timer);
-        socket.send(JSON.stringify({ action: "play" }));
-      } else {
-        console.log("wait for your turn");
-      }
-    };
-
-    const move = (data) => {
-      // show_dice()
-      state = data['state']
-      p = data['position']
-      player = data['player']
-      if (n <= 9) {
-        set_position(player, p, 0)
-      }
-      else {
-        b = Math.floor(p / 10)
-        reminder = p % 10
-        if (b % 2) {
-          if (reminder === 0) {
-            reminder = 10
-          }
-          set_position(player, reminder - 1)
+      // /////
+      // start sound
+      // ////
+      var intracted = false;
+      document.addEventListener("click", () => {
+        if (!intracted) {
+          music = document.getElementById("snl_music");
+          music.play();
+          intracted = true;
         }
-        else {
+      });
 
-          if (reminder === 0) {
-            reminder = 10
-          }
-          set_position(player, 10 - reminder)
+      // /////////////////
+      //  any sound intrupt
+      // /////////////////////
+
+      const sound_intrupt = (sound) => {
+        if (sound_stoped) {
+          return;
         }
-
-      }
-
-      started(data)
-    }
-    const set_position = (player, x, y) => {
-      let p = document.querySelector('#p_' + player)
-      p.style.left = `${x * defaultChange + defaultLeft}px`
-      p.style.bottom = `${y * defaultChange + defaultBottom}px`
-
-    }
-    const change_player = () => {
-      socket.send(JSON.stringify({ action: "change_player" }));
-    };
-    // play
-    // const play = () => {
-    //   if (state.current === state.me && state.sent === false) {
-    //     if (opened) {
-    //       clearTimeout(opened);
-    //     }
-    //     if (changed) {
-    //       clearTimeout(changed);
-    //     }
-    //     if (moved) {
-    //       clearTimeout(moved);
-    //     }
-    //     state.sent = true;
-    //     console.log("rolling");
-
-    //     msg = {
-    //       action: "play",
-    //     };
-    //     socket.send(JSON.stringify(msg));
-    //   } else {
-    //     console.log("wait for your turn");
-    //   }
-    // };
-
-    // timer function
-
-    const start_game = () => {
-      // check first all players are ready
-      if (state["start_width_me"]) {
-        state.sent = false;
-        console.log("1st my turn");
-        start_timer();
+        if (!music_stoped) {
+          music.voloum = 0.01;
+        }
+        s = document.getElementById(sound);
+        s.play();
         setTimeout(() => {
-          if (!state.sent) {
-            console.log("change player");
-            state.sent = true;
-            msg = {
-              action: "change_player",
-            };
-            socket.send(JSON.stringify(msg));
-          } else {
-            console.log("player moved");
+          if (!music_stoped) {
+            music.voloum = 1;
           }
-        }, 5000);
-      }
-    };
+        });
+      };
 
-    // functions
+      // // defaults
+      // const defaultChange = 60;
+      // const defaultLeft = 10;
+      // const defaultBottom = 10;
+      // defaults
+      const defaultChange = 30;
+      const defaultLeft = 5;
+      const defaultBottom = 5;
 
-    const open = (data) => {
-      current_player.innerHTML = data["player"];
-      state.current = data["player"];
-      rolling();
-      setTimeout(() => {
-        show_dice(data["number"]);
-        // move_player(data);
-        if (data["player"] === state.me) {
-          state.sent = false;
-          // msg to play again
-          console.log(" i got 6 now I can move");
-          console.log("move again");
-          opened = setTimeout(() => {
-            if (!state.sent) {
-              state.state = true;
-              msg = {
-                action: "change_player",
-              };
-              socket.send(JSON.stringify(msg));
-            } else {
-              console.log("player moved");
+      // socket initialization
+      const ROOM_NO = JSON.parse("{{room_id|escapejs}}")["room_id"];
+      const socket = new WebSocket(
+        "ws://" + window.location.host + "/ws/SNL/" + ROOM_NO + "/"
+      );
+
+      // Actions
+      const player_changed_ = "player_changed";
+      const open_ = "open";
+      const move_ = "move";
+      const double_move_ = "double_move";
+      const started_ = "started";
+      const set_state_ = "set_state";
+      const cant_move_ = "cant_move";
+      const agian_entered_ = "again_entered";
+      // timer variables
+      var opened, timer_, stop_timer_, no_respose_timer, change_player_timer;
+
+      var t = 12;
+      // socket functions
+      socket.onmessage = function (e) {
+        const data = JSON.parse(e["data"]);
+        clearTimeout(no_respose_timer);
+        clear_timer();
+        console.log(data["action"]);
+        switch (data["action"]) {
+          case move_:
+            show_dice(data["number"]);
+            move(data, data["position"]);
+            started(data);
+            if (data["win"]) {
+              win(data);
             }
-          }, 5000);
+            break;
+          case double_move_:
+            show_dice(data["number"]);
+            double_move(data);
+            started(data);
+            break;
+
+          case player_changed_:
+            started(data);
+            break;
+
+          case open_:
+            show_dice(data["number"]);
+            open(data);
+            break;
+          case started_:
+            started(data);
+            break;
+
+          case set_state_:
+            if (data["error"]) {
+              started(data);
+            }
+            break;
+          case agian_entered_:
+            console.log("again");
+            // again_entered(data);
+            started(data);
+            break;
+          case cant_move_:
+            show_dice(data["number"]);
+            cant_move(data);
+            break;
+          default:
+            break;
         }
-      }, 1000);
-    };
+      };
+      socket.onclose = function (e) {
+        console.log("onclose", e);
+      };
+      socket.onerror = function (e) {
+        console.log("onerror", e);
+      };
+      socket.onopen = function (e) {
+        console.log("onopen", e);
+      };
 
-    const show_dice = (n) => {
-      dice.textContent = n;
-    };
-    const rolling = () => {
-      dice.textContent = "Rolling";
-    };
+      // function sleep(ms) {
+      //   return new Promise(resolve => setTimeout(resolve, ms))
+      // }
+      // async function show_timer() {
 
-    const move_player = (player_name, n, c) => {
-      let p = document.querySelector(`#player_${player_name}`);
-      let player = players[c];
-      if (player.bottom % 2 === 0) {
-        if (n > positionConstrain.maxRightPosition - player.left) {
-          r = n - (positionConstrain.maxRightPosition - player.left);
-          move_right(
-            p,
-            player,
-            positionConstrain.maxRightPosition - player.left
-          );
-          move_up(p, player, r);
-          if (r - 1 > 0) {
-            move_left(p, player, r - 1);
-          }
+      //   for (let i = 1; i <= state.time; i++) {
+      //     if (!keep_timer) {
+      //       return
+      //     }
+      //     timer.innerText = i;
+      //     await sleep(1000)
+
+      //   }
+      // }
+
+      const leave = () => {
+        socket.send(
+          JSON.stringify({
+            action: "leave",
+          })
+        );
+      };
+      const show_dice = (no) => {
+        $(dice).innerText = no;
+      };
+      const cant_move = (data) => {
+        started(data);
+      };
+
+      const start_timer = () => {
+        t = state.time;
+        stop_timer_ = setTimeout(() => {
+          clearInterval(timer_);
+        }, t * 1000);
+        timer_ = setInterval(() => {
+          t--;
+          timer.innerText = t;
+        }, 1000);
+      };
+
+      const clear_timer = () => {
+        if (timer_) {
+          clearInterval(timer_);
+        }
+
+        if (stop_timer_) {
+          clearTimeout(stop_timer_);
+        }
+      };
+
+      const show_state = () => {
+        // it will show and state everytime
+        current_player.innerText = state.current_player;
+      };
+
+      // win
+
+      const win = () => {
+        sound_intrupt("win");
+        // add image to winner
+        if (data["player"] === me) {
+          // show winner box
+        }
+      };
+      const again_entered = (data) => {
+        state = data["state"];
+        show_state();
+        timer.innerText = "getting time";
+        if (state.current_player == me) {
+          sent = false;
+          change_player_timer = setTimeout(() => {
+            sent = true;
+            change_player();
+          }, state.time * 1000);
         } else {
-          console.log("here 1");
-          move_right(p, player, n);
+          no_respose_timer = setTimeout(() => {
+            socket.send(
+              JSON.stringify({ action: "check_state", old_state: state })
+            );
+          }, 16000);
         }
-      } else {
-        if (player.left < n) {
-          r = n - player.left;
-          move_left(p, player, player.left);
-          move_up(p, player, r);
-          if (r - 1 > 0) {
-            move_right(p, player, r - 1);
-          }
+      };
+
+      // change player
+      // its runs when game is started
+      const started = (data) => {
+        state = data["state"];
+        show_state();
+        start_timer();
+        if (state.current_player == me) {
+          sent = false;
+          change_player_timer = setTimeout(() => {
+            sent = true;
+            change_player();
+          }, state.time * 1000);
         } else {
-          move_left(p, player, n);
+          no_respose_timer = setTimeout(() => {
+            socket.send(
+              JSON.stringify({ action: "check_state", old_state: state })
+            );
+          }, 16000);
         }
-      }
-    };
+      };
 
-    const set_x = (p, player) => {
-      p.style.left = `${player.left * defaultChange + defaultLeft}px`;
-    };
-    const set_y = (p, player) => {
-      p.style.bottom = `${player.bottom * defaultChange + defaultBottom}px`;
-    };
-    const move_right = (p, player, n) => {
-      console.log("here 2");
-      player.left += n;
-      set_x(p, player);
-    };
+      const play = () => {
+        if (!sent && state.current_player === me) {
+          clear_timer();
+          clearTimeout(change_player_timer);
+          sent = false;
+          socket.send(JSON.stringify({ action: "play" }));
+        } else {
+          setTimeout(() => {
+            notification("wait for your turn");
+            sound_intrupt("sound_notification");
+          }, 1000);
+        }
+      };
 
-    const move_left = (p, player, n) => {
-      player.left -= n;
-      set_x(p, player);
-    };
+      const move = (data, position) => {
+        // show_dice()
+        p = position;
+        player = data["player"];
 
-    const move_up = (p, player, n) => {
-      if (n > 0) {
-        player.bottom += 1;
-        set_y(p, player);
-      }
-    };
-  </script>
-</body>
+        if (p <= 10) {
+          set_position(player, p - 1, 0);
+        } else {
+          b = Math.floor(p / 10);
+          reminder = p % 10;
+          if (reminder === 0) {
+            b--;
+          }
+          if (b % 2 === 0) {
+            if (reminder === 0) {
+              reminder = 10;
+            }
+            set_position(player, reminder - 1, b);
+          } else {
+            if (reminder === 0) {
+              reminder = 10;
+            }
+            set_position(player, 10 - reminder, b);
+          }
+        }
+      };
 
+      const double_move = (data) => {
+        move(data, data["position"]);
+        setTimeout(() => {
+          // sound(data)
+          move(data, data["bridge_end"]);
+          if (data["bridge"] === "SNAKE") {
+            sound_intrupt("snake");
+          } else {
+            sound_intrupt("ladder");
+          }
+        }, 500);
+      };
+      const set_position = (player, x, y) => {
+        let p = document.querySelector("#p_" + player);
+        p.style.left = `${x * defaultChange + defaultLeft}px`;
+        p.style.bottom = `${y * defaultChange + defaultBottom}px`;
+      };
+      const change_player = () => {
+        socket.send(JSON.stringify({ action: "change_player" }));
+      };
+
+      // functions
+
+      const open = (data) => {
+        current_player.innerHTML = data["player"];
+        state.current = data["player"];
+        rolling();
+        setTimeout(() => {
+          show_dice(data["number"]);
+          // move_player(data);
+          if (data["player"] === state.me) {
+            state.sent = false;
+            // msg to play again
+            opened = setTimeout(() => {
+              if (!state.sent) {
+                state.state = true;
+                msg = {
+                  action: "change_player",
+                };
+                socket.send(JSON.stringify(msg));
+              } else {
+              }
+            }, 5000);
+          }
+        }, 1000);
+      };
+
+      // ////////////////////////
+      //       handlers        //
+      // ////////////////////////
+
+      const handle_sound = () => {
+        sound_stoped = !sound_stoped;
+        if (sound_stoped) {
+          $(document.getElementById("sound")).removeClass("on");
+        } else {
+          $(document.getElementById("sound")).addClass("on");
+        }
+      };
+      const handle_music = () => {
+        if (music_stoped) {
+          music.play();
+          $(document.getElementById("music")).addClass("on");
+        } else {
+          music.pause();
+          $(document.getElementById("music")).removeClass("on");
+        }
+        music_stoped = !music_stoped;
+      };
+
+      const handle_exit = () => {
+        $(join_dropwown).addClass("join_dropdown-active");
+        sound_intrupt("sound_notification");
+      };
+
+      const exit = document.querySelector(".exit");
+      document.querySelector("#exit").addEventListener("click", () => {
+        $(exit).addClass("show_exit");
+        sound_intrupt("sound_notification");
+      });
+      document.querySelector(".stay").addEventListener("click", () => {
+        $(exit).removeClass("show_exit");
+      });
+
+      const handle_chat = () => {
+        $(document.querySelector(".chat")).toggleClass("show_chat");
+      };
+
+      const notification = (msg) => {
+        let l = document.querySelectorAll(".notification").length;
+        let li = document.createElement("li");
+        let bell_btn = document.createElement("button");
+
+        let bell_img = document.createElement("img");
+
+        let div = document.createElement("div");
+        $(div).addClass("notification__msg");
+        div.innerText = msg;
+
+        bell_img.setAttribute("src", "/static/icons/bell.png");
+
+        bell_btn.appendChild(bell_img);
+        $(bell_btn).addClass("notification__btn");
+
+        $(bell_img).addClass("notification__bell");
+        $(li).addClass("notification");
+        li.setAttribute("id", "n_" + l);
+        li.appendChild(bell_btn);
+        li.appendChild(div);
+
+        document.querySelector(".SNL__notification").appendChild(li);
+        setTimeout(() => {
+          $(document.querySelector(`#n_${l}`)).remove();
+        }, 6000);
+      };
+    </script>
+  </body>
 </html>

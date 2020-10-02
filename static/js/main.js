@@ -50,3 +50,18 @@ setInterval(() => {
   }
   $(sliders[current_s]).addClass("s-active");
 }, 5000);
+
+// //////////////////
+//     join dropdown
+// /////////////////
+const join_dropwown = document.querySelector(".join_dropdown");
+
+document.querySelector(".join__btn").addEventListener("click", () => {
+  $(join_dropwown).addClass("join_dropdown-active");
+});
+
+document
+  .querySelector(".join_dropdown__cross")
+  .addEventListener("click", () => {
+    $(join_dropwown).removeClass("join_dropdown-active");
+  });

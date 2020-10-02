@@ -16,7 +16,7 @@ const loaded = () => {
     arrange_games(1);
   }
   old_size = width;
-  $(document.querySelector(".stage")).addClass("hide-stage");
+  $(document.querySelector(".spiner")).addClass("hide-spiner");
 };
 
 // It will render page when we will resize page

@@ -8,9 +8,9 @@ from django.db.models.deletion import CASCADE
 class Game(models.Model):
     game_name = models.CharField(max_length=60)
     img = models.ImageField(upload_to='images/', blank=True, null=True)
-    background = models.ImageField(upload_to='images/', blank=True, null=True)
     code = models.CharField(max_length=20, null=True, blank=True)
     max_player = models.IntegerField(null=True, blank=True)
+    min_player = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.game_name
@@ -28,6 +28,7 @@ class Room(models.Model):
     can_start = models.BooleanField(default=False)
     started = models.BooleanField(default=False)
     members_ready = models.IntegerField(default=1)
+    game_url = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return self.sp_id

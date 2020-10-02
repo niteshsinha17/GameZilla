@@ -8,21 +8,17 @@ from django.db.models.deletion import CASCADE
 class SNL(models.Model):
     room = models.OneToOneField(Room, on_delete=CASCADE)
     game_id = models.SlugField()
-    date = models.DateField(auto_now_add=True)
-    time = models.TimeField(auto_now_add=True)
-    finished = models.BooleanField(default=False)
-
     # no use of winner
-    winner = models.CharField(
-        max_length=30, default=None, blank=True, null=True)
     started = models.BooleanField(default=False)
     max_player = models.IntegerField(default=0)
-    current_player = models.ForeignKey(User, on_delete=CASCADE)
+    current_player = models.ForeignKey(
+        User, on_delete=CASCADE, null=True, blank=True)
 
     current = models.IntegerField(null=True, blank=True)
     winner_state = models.IntegerField(default=0)
     player_entered = models.IntegerField(default=0)
     time_stamp = models.FloatField(null=True, blank=True)
+    round = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.game_id
@@ -33,7 +29,6 @@ class SNLPlayer(models.Model):
               ('BLUE', 'BLUE'),
               ('YELLOW', 'YELLOW'),
               ('GREEN', 'GREEN'))
-
     game = models.ForeignKey(SNL, on_delete=models.CASCADE)
     player = models.ForeignKey(User, on_delete=CASCADE)
     rank = models.IntegerField(default=0)
@@ -45,6 +40,7 @@ class SNLPlayer(models.Model):
     left = models.IntegerField(default=0)
     bottom = models.IntegerField(default=0)
     '''
+
     disable will tell weather player win or not
 
     '''

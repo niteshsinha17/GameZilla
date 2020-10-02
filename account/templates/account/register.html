@@ -6,32 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create Account</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/register.css' %}" />
   </head>
   <body>
     <div class="background">
       <div class="background__nav">
-        <a class="background__brand"
-          >Gamezilla
-          <span class="background__detail"
-            >Online <span class="background__divider"></span> Multiplayer
-            <span class="background__divider"></span> Game</span
-          ></a
-        >
+        <a class="background__brand">
+          <img src="{% static 'icons/logo.png' %}" alt="" />
+        </a>
 
         <div class="background__login">
           <form method="POST" class="login">
             {% csrf_token %}
 
             <input type="hidden" name="form_type" value="login" />
-            {% for field in login_form %}
-            <!-- <input
-              type="{{field.html_name}}"
-              name="{{field.html_name}}"
-              placeholder="{{field.label}}"
-              class="login__input"
-            /> -->{{field}} {% endfor %}
+            {% for field in login_form %} {{field}} {% endfor %}
             <input type="submit" value="Login" class="login__submit" />
           </form>
+          {% for err in login_form.non_field_errors %}
+          <p class="login_error">{{err}}</p>
+          {% endfor %}
         </div>
       </div>
       <div class="background__slider">
@@ -65,7 +59,7 @@
         </div>
       </div>
 
-      <div class="register {% if show %} active {% endif %}">
+      <div class="register">
         <div class="register__up">
           <a onclick="show_register()" class="register__navigator"> Regiter </a>
         </div>
@@ -79,17 +73,9 @@
             <div class="register__divider"></div>
             <form method="POST">
               {% csrf_token%}
-
               <input type="hidden" name="form_type" value="register" />
               {% for field in registration_form %}
-              <p>{{field.errors}}</p>
-              <!-- <input
-                type="{{field.html_name}} "
-                required
-                name="{{field.html_name}}"
-                class="register__input"
-                placeholder="{{field.label}}"
-              /> -->
+              <p class="register__field-error">{{field.errors}}</p>
               {{field}} {% endfor %}
               <div class="register__btns">
                 <input type="submit" class="register__btn" value="Sign Up" />
@@ -97,26 +83,6 @@
               </div>
             </form>
           </div>
-          <!-- <div id="guest_form" class="register__form">
-            <h2 class="register__heading">Register As Guest</h2>
-            <div class="register__divider"></div>
-            <form method="POST">
-              {% csrf_token%} {% for field in guest_form %}
-              <p>{{field.errors}}</p>
-              <input
-                type="{{field.html_name}} "
-                required
-                class="register__input"
-                placeholder="{{field.label}}"
-              />
-              {% endfor %}
-              <input
-                type="submit"
-                class="register__btn"
-                value="Guest Sign Up"
-              />
-            </form>
-          </div> -->
         </div>
 
         <div class="register__down">

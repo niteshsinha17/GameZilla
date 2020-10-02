@@ -6,11 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/room.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
   </head>
-  <body>
-    <!-- //////////////////////////////// -->
-    <!-- //////////////////////////////// -->
-
+  <body style="position: relative">
     <div class="room">
       <button onclick="start()" class="room__start">Start</button>
       <button onclick="leave()" class="room__leave">LEAVE</button>
@@ -21,33 +20,44 @@
 
       <div class="room__game_detail">
         <h2 class="room__heading">
-          {{selected_game.game_name}}({{selected_game.max_player}})
+          <img src="{% static 'icons/game.png' %}" alt="" />
+          {{selected_game.game_name}}
         </h2>
         <span>
-          <i onclick="show_detail()" id="detail_icon" class="fas fa-home"></i>
-          <i id="setting" onclick="show_gd()" class="fas fa-cog"></i
-        ></span>
+          <button onclick="show_detail()" id="detail_icon">
+            <img src="{% static 'icons/home.png' %}" alt="" />
+          </button>
+          <button id="setting" onclick="show_gd()">
+            <img src="{% static 'icons/setting.png' %}" alt="" />
+          </button>
+        </span>
       </div>
       <div class="container">
         <div class="row">
           <div class="room__detail">
             <span onclick="hide_detail()" class="detail__cross"></span>
-            <h3 class="room__sub-heading">Room detail</h3>
+            <h3 class="room__sub-heading">Room details</h3>
             <ul class="detail">
               <li class="detail__item">
-                Game Id : <span class="bold">Nitesh002</span>
+                Game Id : <span class="bold">{{room.sp_id}}</span>
               </li>
               <li class="detail__item">
-                Hosted By : <span class="bold">Nitesh Sinha</span>
+                Hosted By :
+                <span class="bold">{{room.created_by.username}}</span>
               </li>
               <li class="detail__item">
-                Password : <span class="bold">abcd012</span>
+                Password : <span class="bold">{{room.password}}</span>
               </li>
               <li class="detail__item">
-                Members Joined : <span class="bold">2</span>
+                Members Joined :
+                <span class="bold">{{room.joined_member}}</span>
               </li>
               <li class="detail__item">
-                Hosted By : <span class="bold">Nitesh Sinha</span>
+                Max Players :
+                <span class="bold">{{room.game.max_players}}</span>
+              </li>
+              <li class="detail__item">
+                Min Players : <span class="bold">{{room.game.min_player}}</span>
               </li>
             </ul>
 
@@ -92,36 +102,41 @@
         </div>
         <div class="games">
           {% for game in games %}
-          <div id="g_{game.code}" class="g-card">
+          <a
+            id="{{game.code}}"
+            onclick="change(event)"
+            class="g-card {% if game.code == selected_game.code %} selected {% endif %}"
+          >
             <img
-              id="{{game.code}}"
-              onclick="change(event)"
-              class="g-card__img {% if game.code == selected_game.code %} selected {% endif %}"
-              src="{{game.img.url}} "
+              id="img_{game.code}"
+              class="g-card__img"
+              src="{{game.img.url}}"
               alt=""
             />
-            <div class="g-card__name">
-              <h4>{{game.game_name}}({{game.max_player}})</h4>
+            <div class="g-card__detail">
+              <div class="g-card__name">
+                <img src="{% static 'icons/game.png' %}" alt="" />
+                <h4 class="g-card__name">{{game.game_name}}</h4>
+              </div>
+              <div class="g-card__players">
+                {{game.min_player}}-{{game.max_player}}
+              </div>
             </div>
-          </div>
+          </a>
 
           {% endfor %}
         </div>
       </div>
     </div>
-    <!-- ////////////////////////////////// -->
-    <!-- ////////////////////////////////// -->
-    <script
-      src="https://kit.fontawesome.com/a0acbb8bf8.js"
-      crossorigin="anonymous"
-    ></script>
+    <!-- //////////////////////////////// -->
+    <!-- //////////////////////////////// -->
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <script>
       const games = document.querySelectorAll(".g-card");
       const games_wrapper = document.querySelector(".games");
       const arrange_games = (n) => {
-        console.log("arrage");
         row_ = Math.floor(games.length / n);
         extra = games.length % n;
         var count = 0;
@@ -232,7 +247,7 @@
       const ROOM_NO = state.room_no;
       const error_ = document.querySelector(".error");
       const members = document.querySelector(".members__list");
-      console.log(ROOM_NO);
+
       // socket initiallisation
       const socket = new WebSocket(
         "ws://" + window.location.host + "/ws/room/" + ROOM_NO + "/"
@@ -251,28 +266,22 @@
         data = JSON.parse(e.data);
         switch (data["action"]) {
           case add_member_:
-            console.log("add member");
             add_member(data);
             break;
           case member_removed_:
-            console.log("remove member");
             remove_member(data);
             break;
           case started_:
-            console.log("started");
             started(data);
             break;
           case ready_:
-            console.log("ready");
             ready(data);
             break;
           case game_changed_:
-            console.log("game changed");
             game_changed(data);
             break;
 
           case online_:
-            console.log("online");
             online(data["member"], data["status"]);
             break;
           case leaved_:
@@ -346,7 +355,6 @@
         btn_div.appendChild(ready_btn);
         $(li).addClass("members__item");
         if (!data["host"]) {
-          console.log("add remove");
           let remove_btn = document.createElement("button");
           $(remove_btn).addClass("members__remove");
           remove_btn.innerHTML = "remove";
@@ -362,7 +370,6 @@
       // online status
       const online = (member, status) => {
         let id = "#r_" + member + " .online";
-        console.log(id);
         if (status) {
           document.querySelector(id).innerText = "online";
         } else {
@@ -419,7 +426,6 @@
 
       // leave
       const leave = () => {
-        console.log("leave");
         socket.send(JSON.stringify({ action: "leave" }));
       };
 
@@ -440,7 +446,6 @@
       const room = document.querySelector(".room__bg");
 
       const change = (event) => {
-        console.log(event.target.id);
         socket.send(
           JSON.stringify({
             action: "change_game",

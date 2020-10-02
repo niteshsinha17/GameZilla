@@ -1,44 +1,121 @@
-{% extends "game/home_base.html" %} {% block navigation_bar %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index Page</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/home.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
+  </head>
+  <body style="background: #eee" onload="loaded()">
+    <div class="spiner">
+      <div class="loader"></div>
+    </div>
+    {% for message in messages%}
+    <div class="message">{{message}}</div>
+    {% endfor %}
+    <div class="navigation">
+      <div class="navigation__bar">
+        <div class="navigation__brand">
+          <img src="{% static 'icons/logo.png' %}" alt="" />
+        </div>
+        <span onclick="navigationBarHandler()" class="navigation__toggler">
+          <img
+            id="navigation-icon"
+            src="{% static 'icons/arrow.png' %}"
+            alt=""
+          />
+        </span>
+        <ul class="navigation__list">
+          <li class="navigation__item">
+            <a href="" class="navigation__link">{{user.username}}</a>
+          </li>
+          <li class="navigation__item">
+            <a href="" class="navigation__link active">Home</a>
+          </li>
+          <li class="navigation__item">
+            <a href="" class="navigation__link">Report</a>
+          </li>
+          <li class="navigation__item">
+            <a href="" class="navigation__link">Something</a>
+          </li>
+          <li class="navigation__sub-item">Setting</li>
+          <li class="navigation__item">
+            <a href="" class="navigation__link">Password Reset</a>
+          </li>
+          <li class="navigation__item">
+            <a href="" class="navigation__link">Change Email</a>
+          </li>
+          <li class="navigation__item">
+            <a href="" class="navigation__link">Logout</a>
+          </li>
+          <li class="navigation__sub-item">Hosted Rooms</li>
+          {% if hosted_rooms %} {% for room in hosted_rooms %}
+          <li class="room">
+            <div class="room__id">{{room.room.sp_id}}</div>
+            <a href="/room/{{room.room}}">JOIN</a>
+            <button class="room__leave" id="{{room.room.sp_id}}">
+              <img src="{% static 'icons/leave.png' %}" alt="" />
+            </button>
+          </li>
+          {% endfor %} {% else %} No room {% endif %}
+          <li class="navigation__sub-item">Joined Rooms</li>
+          {% if joined_rooms %} {% for room in joined_rooms %}
+          <li class="room">
+            <div class="room__id">{{room.room.sp_id}}</div>
+            <a href="/join/{{room.room.sp_id}}">JOIN</a>
+          </li>
+          <button class="room__leave" id="{{room.room.sp_id}}">
+            <img src="{% static 'icons/leave.png' %}" alt="" />
+          </button>
+          {% endfor %} {% else %} No room {% endif %}
+        </ul>
+      </div>
+    </div>
+    <div class="main">
+      <div class="header">
+        <a class="header__brand">
+          <img src="{% static 'icons/logo.png' %}" alt="" />
+        </a>
+      </div>
+      <div class="join">
+        <button class="join__btn">JOIN GAME</button>
+      </div>
 
-<ul class="navigation__list">
-  <li class="navigation__item">
-    <a href="" class="navigation__link">{{user.username}}</a>
-  </li>
-  <li class="navigation__item">
-    <a href="" class="navigation__link active">Home</a>
-  </li>
-  <li class="navigation__item">
-    <a href="" class="navigation__link">Report</a>
-  </li>
-  <li class="navigation__item">
-    <a href="" class="navigation__link">Something</a>
-  </li>
-  <li class="navigation__sub-item">Setting</li>
-  <li class="navigation__item">
-    <a href="" class="navigation__link">Password Reset</a>
-  </li>
-  <li class="navigation__item">
-    <a href="" class="navigation__link">Change Email</a>
-  </li>
-  <li class="navigation__item">
-    <a href="" class="navigation__link">Logout</a>
-  </li>
-</ul>
-{% endblock navigation_bar %} {% block game %}
+      <div class="games">
+        {% for game in games %}
+        <a href="{% url 'host' game.code%}" class="g-card">
+          <img class="g-card__img" src="{{game.img.url}}" alt="" />
+          <div class="g-card__detail">
+            <div class="g-card__name">
+              <img src="{% static 'icons/game.png' %}" alt="" />
+              <h4 class="g-card__name">{{game.game_name}}</h4>
+            </div>
+            <div class="g-card__players">
+              {{game.min_player}}-{{game.max_player}}
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="join_dropdown">
+      <button class="join_dropdown__cross">
+        <img src="{% static 'icons/cross.png' %}" alt="" />
+      </button>
+      <h3 class="join_dropdown__heading">JOIN GAME</h3>
+      <form action="POST">
+        <input type="text" placeholder="Game Id" />
+        <input type="password" placeholder="Password" />
+        <input class="join_dropdown__btn" type="submit" placeholder="JOIN" />
+      </form>
+    </div>
 
-<div class="stage">
-  <div class="dot-floating"></div>
-</div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-{% for game in games %}
-<div class="g-card">
-  <a class="g-card__link" href="{% url 'host' game.code%}">
-    <img class="g-card__img" src="{{game.img.url}}" alt="img"
-  /></a>
-
-  <div class="g-card__name">
-    <h4>{{game.game_name}}</h4>
-  </div>
-</div>
-
-{% endfor %} {% endblock game %}
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/resize.js' %}"></script>
+  </body>
+</html>

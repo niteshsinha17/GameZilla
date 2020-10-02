@@ -211,7 +211,7 @@ class RoomConsumer(AsyncConsumer):
     def leave(self, username, is_host):
         print('-----------leave---------------')
         if is_host:
-            Room.objects.get(self.room_no).delete()
+            Room.objects.get(sp_id=self.room_no).delete()
             return {'action': 'leaved', 'member': 'all'}
         else:
             user = User.objects.get(username=username)
@@ -310,13 +310,18 @@ class RoomConsumer(AsyncConsumer):
 
             colors = ['RED', 'BLUE', 'YELLOW', 'GREEN']
             members = Member.objects.filter(room=room)
-            game.current_player = members[random.randint(
-                0, game.max_player-1)].member
+
+            # NO USE
+            # game.current_player = members[random.randint(
+            #     0, game.max_player-1)].member
             game.save()
+
             for i in range(game.max_player):
                 player = SNLPlayer(
                     game=game, player=members[i].member, color=colors[i])
                 player.save()
             url = '/SNL/'+game.game_id+'/'
 
-            return {'action': 'started', 'can_start': True, 'url': url}
+        room.game_url = url
+        room.save()
+        return {'action': 'started', 'can_start': True, 'url': url}

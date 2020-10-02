@@ -6,6 +6,7 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib.auth import authenticate
+from django.contrib import messages
 # Create your views here.
 
 
@@ -14,7 +15,15 @@ def home(request):
     context = {}
     if user.is_authenticated:
         games = Game.objects.all()
+        rooms = Member.objects.filter(member=user)
+        hosted_rooms = rooms.filter(host=True)
+        joined_romms = rooms.filter(host=False)
+        for room in rooms:
+            print(room.room.sp_id)
+
         context['games'] = games
+        context['hosted_rooms'] = hosted_rooms
+        context['joined_rooms'] = joined_romms
         return render(request, 'game/home.html', context)
     else:
         return redirect('register')
@@ -24,6 +33,11 @@ def home(request):
 def host_game(request, game_code):
     user = request.user
     game = Game.objects.get(code=game_code)
+    rooms = Room.objects.filter(created_by=user)
+    if rooms.count() == 3:
+        messages.add_message(
+            request, messages.INFO, 'You have created maximum game rooms. Please exit from there to create new room')
+        return redirect('home')
     room = Room(game=game, created_by=user)
     room.sp_id = user.username + '00' + str(Room.objects.all().count()+1)
     room.max_members = game.max_player
@@ -40,6 +54,8 @@ def host_room_view(request, sp_id):
     except:
         return render(request, 'game/no_room.html')
 
+    if room.started:
+        return redirect(room.game_url)
     if not (user.username == room.created_by.username):
         return render(request, 'game/not_allowed.html')
     members = Member.objects.filter(room=room)
@@ -54,7 +70,7 @@ def host_room_view(request, sp_id):
         created = False
 
     if not created:
-        print('------------not created----------------')
+        print('------------room not created----------------')
         member = Member(member=user, host=True, ready=True)
         member.room = room
         member.save()
@@ -115,7 +131,7 @@ def join_game(request, sp_id):
         'members_ready': room.members_ready,
         'room_no': sp_id
     }
-
+    context['games'] = Game.objects.all()
     context['selected_game'] = room.game
     context['members'] = members
     context['state'] = json.dumps(state)

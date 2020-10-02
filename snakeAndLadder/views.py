@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import SNL, SNLMessage, SNLPlayer
 from django.contrib.auth.decorators import login_required
 import json
@@ -9,7 +9,10 @@ import json
 def game(request, game_id):
     context = {}
     user = request.user
-    game = SNL.objects.get(game_id=game_id)
+    try:
+        game = SNL.objects.get(game_id=game_id)
+    except:
+        return render(request, 'game/no_room.html')
     players = SNLPlayer.objects.filter(game=game)
 
     try:
@@ -17,20 +20,17 @@ def game(request, game_id):
     except:
         return render(request, 'game/not_allowed.html')
 
-    # state = {
-    #     'me': user.username,
-    #     'game_id': game_id,
-    #     'left': player.left,
-    #     'sent': False,
-    # }
+    if game.started and not player.entered:
+        return redirect('home')
 
-    players_json = [{'name': player.player.username, 'color': player.color, 'left': player.left,
-                     'bottom': player.bottom, 'pos': player.position} for player in players]
+    players_json = [{'name': player.player.username,
+                     'position': player.position} for player in players]
     context['players'] = players
     context['player'] = player
     context['game'] = game
     context['players_json'] = json.dumps(players_json)
     context['room_id'] = json.dumps({'room_id': game_id})
-    context['me'] = json.dumps({'me': user.username})
+    context['me'] = json.dumps(
+        {'me': user.username })
 
     return render(request, 'snakeAndLadder/game.html', context)

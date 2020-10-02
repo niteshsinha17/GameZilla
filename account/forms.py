@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 # from .models import User
 # from account.models import CustomUser
 
@@ -18,6 +19,21 @@ class LoginForm(forms.Form):
         max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'login__input', 'placeholder': 'Username'}))
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'login__input', 'placeholder': 'Password'}))
+
+    def clean(self):
+        super().clean()
+        data = self.cleaned_data
+        username = data['username']
+        password = data['password']
+
+        user = authenticate(username=username, password=password)
+        if not user:
+            u = User.objects.filter(username=username)
+            if u.count() > 0:
+                raise forms.ValidationError('Wrong Password')
+            else:
+                raise forms.ValidationError('Invalid Login')
+        return self.cleaned_data
 
 
 class RegistrationForm(forms.Form):

@@ -17,6 +17,7 @@ class SNL(models.Model):
     current = models.IntegerField(null=True, blank=True)
     winner_state = models.IntegerField(default=0)
     player_entered = models.IntegerField(default=0)
+    player_disabled = models.IntegerField(default=0)
     time_stamp = models.FloatField(null=True, blank=True)
     round = models.IntegerField(null=True, blank=True)
 
@@ -29,7 +30,7 @@ class SNLPlayer(models.Model):
               ('BLUE', 'BLUE'),
               ('YELLOW', 'YELLOW'),
               ('GREEN', 'GREEN'))
-    game = models.ForeignKey(SNL, on_delete=models.CASCADE)
+    game = models.ForeignKey(SNL, on_delete=models.CASCADE, related_name='snl_player' )
     player = models.ForeignKey(User, on_delete=CASCADE)
     rank = models.IntegerField(default=0)
     color = models.CharField(max_length=10, default='', choices=COLORS)

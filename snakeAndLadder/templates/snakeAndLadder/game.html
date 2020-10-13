@@ -10,7 +10,7 @@
     <title>Document</title>
   </head>
 
-  <body>
+  <body style="overflow: hidden">
     <div class="chat">
       <div class="chat__messages">
         {% for message in messages %}
@@ -66,11 +66,15 @@
           <ul class="SNL__players">
             {% for player in players %}
             <li class="player">
-              {% if player.rank %} {% endif %}
+              {% if player.rank > 0 %}
               <div class="player__rank">
                 <img src="{% static 'icons/First.png' %}" alt="" />
               </div>
-              <div class="player__name RED">{{player.player.username}}</div>
+              {% endif %}
+
+              <div class="player__name {{player.color}}">
+                {{player.player.username}}
+              </div>
               <div class="player__online">
                 {% if player.online %} online {% else %} offine {% endif %}
               </div>
@@ -86,7 +90,7 @@
             </li>
             <li class="settings__item">
               <button
-                onclick="handle_sound()"
+                onclick="handle_sound(event)"
                 id="sound"
                 class="on settings__btn"
               >
@@ -95,7 +99,7 @@
             </li>
             <li class="settings__item">
               <button
-                onclick="handle_music()"
+                onclick="handle_music(event)"
                 id="music"
                 class="settings__btn on"
               >
@@ -103,42 +107,53 @@
               </button>
             </li>
             <li class="settings__item">
-              <button onclick="handle_chat()" id="chat" class="settings__btn">
+              <button
+                onclick="handle_chat(event)"
+                id="chat"
+                class="settings__btn"
+              >
                 <img src="{% static 'icons/msg2.png' %}" alt="" />
               </button>
             </li>
             <li class="settings__item">
-              <button onclick="play()" id="play" class="settings__btn">
+              <button onclick="play(event)" id="play" class="settings__btn">
                 <img src="{% static 'icons/play.png' %}" alt="" />
               </button>
             </li>
           </ul>
         </div>
       </div>
+    </div>
 
-      <ul class="SNL__notification"></ul>
+    <ul class="SNL__notification"></ul>
 
-      <div class="exit">
-        <div class="exit__wrapper">
-          <h3 class="exit__heading">Are you Confirm?</h3>
-          <ul class="exit__list">
-            <li class="exit__item">
-              <button onclick="leave()" class="leave exit__btn">
-                <img src="{% static 'icons/correct.png' %}" alt="" />
-              </button>
-              <div class="exit__option">YES</div>
-            </li>
-            <li class="exit__item">
-              <button class="stay exit__btn">
-                <img src="{% static 'icons/cross.png' %}" alt="" />
-              </button>
-              <div class="exit__option">NO</div>
-            </li>
-          </ul>
-          <p class="exit__para">
-            If Yes, You will not be able to join this game again
-          </p>
-        </div>
+    <div class="exit">
+      <div class="exit__wrapper">
+        <h3 class="exit__heading">Are you Confirm?</h3>
+        <ul class="exit__list">
+          <li class="exit__item">
+            <button onclick="leave()" class="leave exit__btn">
+              <img src="{% static 'icons/correct.png' %}" alt="" />
+            </button>
+            <div class="exit__option">YES</div>
+          </li>
+          <li class="exit__item">
+            <button class="stay exit__btn">
+              <img src="{% static 'icons/cross.png' %}" alt="" />
+            </button>
+            <div class="exit__option">NO</div>
+          </li>
+        </ul>
+        <p class="exit__para">
+          If Yes, You will not be able to join this game again
+        </p>
+      </div>
+    </div>
+    <div class="winners">
+      <div class="winners__wrapper"></div>
+      <div class="winners__btns">
+        <a href="" class="winner__room">Go back to room</a>
+        <a href="" class="winners__exit">Exit</a>
       </div>
     </div>
 
@@ -193,14 +208,11 @@
       const current_player = document.querySelector(".current_player");
       const timer = document.querySelector(".timer");
       const dice = document.querySelector(".SNL__dice");
+
       // getting state and players json from response
       players = JSON.parse("{{players_json|escapejs}}");
       me = JSON.parse("{{me|escapejs}}")["me"];
       var sent = false;
-
-      // /////
-      // start sound
-      // ////
       var intracted = false;
       document.addEventListener("click", () => {
         if (!intracted) {
@@ -254,6 +266,9 @@
       const set_state_ = "set_state";
       const cant_move_ = "cant_move";
       const agian_entered_ = "again_entered";
+      const game_over_ = "game_over";
+      const error_ = "error";
+      const player_not_joined_ = "player_not_joined";
       // timer variables
       var opened, timer_, stop_timer_, no_respose_timer, change_player_timer;
 
@@ -285,10 +300,13 @@
 
           case open_:
             show_dice(data["number"]);
-            open(data);
+            open_player(data);
             break;
           case started_:
             started(data);
+            break;
+          case game_over_:
+            game_over(data);
             break;
 
           case set_state_:
@@ -299,12 +317,19 @@
           case agian_entered_:
             console.log("again");
             // again_entered(data);
+            initialization();
             started(data);
             break;
           case cant_move_:
             show_dice(data["number"]);
             cant_move(data);
             break;
+          case error_:
+            notification(data["error_msg"]);
+            break;
+          case player_not_joined_:
+            player_not_joined();
+
           default:
             break;
         }
@@ -319,20 +344,79 @@
         console.log("onopen", e);
       };
 
-      // function sleep(ms) {
-      //   return new Promise(resolve => setTimeout(resolve, ms))
-      // }
-      // async function show_timer() {
+      const game_over = (data) => {
+        move(data, data["position"]);
+        show_winners(data["winners"]);
+      };
 
-      //   for (let i = 1; i <= state.time; i++) {
-      //     if (!keep_timer) {
-      //       return
-      //     }
-      //     timer.innerText = i;
-      //     await sleep(1000)
+      const player_not_joined = () => {
+        console.log("player not joined");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      };
 
-      //   }
-      // }
+      const initialization = () => {
+        console.log("here");
+        players.forEach((player) => {
+          p = player["position"];
+          player_ = player["name"];
+
+          $("#p_" + player["name"]).animate({
+            opacity: 1,
+            width: default_width + "px",
+            height: default_width + "px",
+          });
+
+          if (p <= 10) {
+            set_position(player_, p - 1, 0);
+          } else {
+            b = Math.floor(p / 10);
+            reminder = p % 10;
+            if (reminder === 0) {
+              b--;
+            }
+            if (b % 2 === 0) {
+              if (reminder === 0) {
+                reminder = 10;
+              }
+              set_position(player_, reminder - 1, b);
+            } else {
+              if (reminder === 0) {
+                reminder = 10;
+              }
+              set_position(player_, 10 - reminder, b);
+            }
+          }
+        });
+      };
+
+      const show_winners = (winners) => {
+        data = "";
+        winners.forEach((winner) => {
+          data += get_winner(winner);
+        });
+
+        $(".winners__wrapper").html(data);
+        $(".winners").addClass("show_winners");
+        $(".winners").animate({ height: "auto" }, 1000, () => {
+          $(".winners__wrapper").addClass("show_winners_wrapper");
+        });
+      };
+
+      const get_winner = (winner) => {
+        return `<div class="winner">
+            <div class="winners__img">
+            ${winner.rank}
+            </div>
+            <div class="winners__name">
+              ${winner.name}
+            </div>
+          </div>`;
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 5000);
+      };
 
       const leave = () => {
         socket.send(
@@ -342,9 +426,10 @@
         );
       };
       const show_dice = (no) => {
-        $(dice).innerText = no;
+        $(dice).html(no);
       };
       const cant_move = (data) => {
+        notification(data["error_msg"]);
         started(data);
       };
 
@@ -384,6 +469,7 @@
         }
       };
       const again_entered = (data) => {
+        initialization();
         state = data["state"];
         show_state();
         timer.innerText = "getting time";
@@ -398,7 +484,7 @@
             socket.send(
               JSON.stringify({ action: "check_state", old_state: state })
             );
-          }, 16000);
+          }, state.time * 1000 + 4000);
         }
       };
 
@@ -423,7 +509,8 @@
         }
       };
 
-      const play = () => {
+      const play = (event) => {
+        btn_animate(event.target);
         if (!sent && state.current_player === me) {
           clear_timer();
           clearTimeout(change_player_timer);
@@ -486,36 +573,25 @@
       };
 
       // functions
+      var default_width = 20;
 
-      const open = (data) => {
-        current_player.innerHTML = data["player"];
-        state.current = data["player"];
-        rolling();
-        setTimeout(() => {
-          show_dice(data["number"]);
-          // move_player(data);
-          if (data["player"] === state.me) {
-            state.sent = false;
-            // msg to play again
-            opened = setTimeout(() => {
-              if (!state.sent) {
-                state.state = true;
-                msg = {
-                  action: "change_player",
-                };
-                socket.send(JSON.stringify(msg));
-              } else {
-              }
-            }, 5000);
-          }
-        }, 1000);
+      const open_player = (data) => {
+        $("#p_" + data["player"]).animate({
+          opacity: 1,
+          left: defaultLeft + "px",
+          bottom: defaultBottom + "px",
+          width: default_width + "px",
+          height: default_width + "px",
+        });
+        started(data);
       };
 
       // ////////////////////////
       //       handlers        //
       // ////////////////////////
 
-      const handle_sound = () => {
+      const handle_sound = (event) => {
+        btn_animate(event.target);
         sound_stoped = !sound_stoped;
         if (sound_stoped) {
           $(document.getElementById("sound")).removeClass("on");
@@ -523,7 +599,8 @@
           $(document.getElementById("sound")).addClass("on");
         }
       };
-      const handle_music = () => {
+      const handle_music = (event) => {
+        btn_animate(event.target);
         if (music_stoped) {
           music.play();
           $(document.getElementById("music")).addClass("on");
@@ -534,8 +611,9 @@
         music_stoped = !music_stoped;
       };
 
-      const handle_exit = () => {
+      const handle_exit = (event) => {
         $(join_dropwown).addClass("join_dropdown-active");
+        btn_animate(event.target);
         sound_intrupt("sound_notification");
       };
 
@@ -548,36 +626,32 @@
         $(exit).removeClass("show_exit");
       });
 
-      const handle_chat = () => {
+      const handle_chat = (event) => {
         $(document.querySelector(".chat")).toggleClass("show_chat");
+        btn_animate(event.target);
+      };
+
+      const btn_animate = (btn) => {
+        $(btn)
+          .animate({ width: "30px", height: "30px" }, 100)
+          .animate({ width: "35px", height: "35px" }, 100);
       };
 
       const notification = (msg) => {
         let l = document.querySelectorAll(".notification").length;
-        let li = document.createElement("li");
-        let bell_btn = document.createElement("button");
-
-        let bell_img = document.createElement("img");
-
-        let div = document.createElement("div");
-        $(div).addClass("notification__msg");
-        div.innerText = msg;
-
-        bell_img.setAttribute("src", "/static/icons/bell.png");
-
-        bell_btn.appendChild(bell_img);
-        $(bell_btn).addClass("notification__btn");
-
-        $(bell_img).addClass("notification__bell");
-        $(li).addClass("notification");
-        li.setAttribute("id", "n_" + l);
-        li.appendChild(bell_btn);
-        li.appendChild(div);
-
-        document.querySelector(".SNL__notification").appendChild(li);
+        $(".SNL__notification").append(get_notification_object(l));
         setTimeout(() => {
           $(document.querySelector(`#n_${l}`)).remove();
-        }, 6000);
+        }, 3000);
+      };
+
+      const get_notification_object = (l) => {
+        return `<li class="notification" id="n_${l}">
+          <button class="notification__btn">
+            <img class="notification__bell" src="/static/icons/bell.png" alt="" />
+          </button>
+          <div class="notification__msg">Wait for your Turn</div>
+        </li>`;
       };
     </script>
   </body>

@@ -16,6 +16,7 @@ class SNL(models.Model):
 
     current = models.IntegerField(null=True, blank=True)
     winner_state = models.IntegerField(default=0)
+    players_playing = models.IntegerField(default=0)
     player_entered = models.IntegerField(default=0)
     player_disabled = models.IntegerField(default=0)
     time_stamp = models.FloatField(null=True, blank=True)
@@ -30,21 +31,23 @@ class SNLPlayer(models.Model):
               ('BLUE', 'BLUE'),
               ('YELLOW', 'YELLOW'),
               ('GREEN', 'GREEN'))
-    game = models.ForeignKey(SNL, on_delete=models.CASCADE, related_name='snl_player' )
+    member = models.OneToOneField(
+        Member, null=True, blank=True, on_delete=CASCADE)
+    game = models.ForeignKey(
+        SNL, on_delete=CASCADE, related_name='players')
     player = models.ForeignKey(User, on_delete=CASCADE)
-    rank = models.IntegerField(default=0)
+    rank = models.IntegerField(null=True, blank=True)
     color = models.CharField(max_length=10, default='', choices=COLORS)
 
     # no use of ready
     ready = models.BooleanField(default=False)
     online = models.BooleanField(default=True)
-    left = models.IntegerField(default=0)
-    bottom = models.IntegerField(default=0)
     '''
 
     disable will tell weather player win or not
 
     '''
+    leaved = models.BooleanField(default=False)
     disable = models.BooleanField(default=False)
     position = models.IntegerField(default=1)
     can_move = models.BooleanField(default=False)
@@ -55,9 +58,10 @@ class SNLPlayer(models.Model):
 
 
 class SNLMessage(models.Model):
-    game = models.ForeignKey(SNL, on_delete=models.CASCADE)
-    player = models.ForeignKey(SNLPlayer, on_delete=CASCADE)
+    game = models.ForeignKey(
+        SNL, on_delete=models.CASCADE, related_name='message')
+    user = models.ForeignKey(User, on_delete=CASCADE, null=True, blank=True)
     text = models.TextField()
 
     def __str__(self):
-        return self.game.game_id + self.player.user.username
+        return self.game.game_id + self.user.username

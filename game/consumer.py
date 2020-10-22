@@ -109,13 +109,23 @@ class RoomConsumer(AsyncConsumer):
         )
 
     async def websocket_disconnect(self, event):
-        username = username = self.scope['user'].username
-        is_member = self.check_member(username)
+
+        self.room_no = self.scope['url_route']['kwargs']['room_no']
+
+        username = self.scope['user'].username
+
+        is_member = await self.check_member(username)
+        print('not error')
+        print(is_member)
         if not is_member:
-            return
+            return await self.send({
+                "type": "websocket.disconnect"
+            })
+
         await self.send({
             "type": "websocket.disconnect"
         })
+        print('DIS here')
         data = await self.online(username, False)
         await self.channel_layer.group_send(
             self.room_no, {
@@ -180,7 +190,10 @@ class RoomConsumer(AsyncConsumer):
     def check_member(self, username):
         print('-----------------check member------------------')
         user = User.objects.get(username=username)
-        room = Room.objects.get(sp_id=self.room_no)
+        try:
+            room = Room.objects.get(sp_id=self.room_no)
+        except:
+            return False
         is_member = True
         try:
             members = Member.objects.filter(room=room)
@@ -244,20 +257,14 @@ class RoomConsumer(AsyncConsumer):
         user = User.objects.get(username=msg['member'])
         room = Room.objects.get(sp_id=self.room_no)
         members = Member.objects.filter(room=room)
-        m = members.get(member=user)
-        data = {}
-        data['was_ready'] = False
-        if m.ready:
+        member = members.get(member=user)
+        data = {'action': 'member_removed', 'member': msg['member']}
+        if member.ready:
             room.members_ready -= 1
-            data['was_ready'] = True
-        m.delete()
+        data['was_ready'] = member.ready
+        member.delete()
         room.members_joined -= 1
         room.save()
-
-        data = {
-            'action': 'member_removed',
-            'member': msg['member']
-        }
         return data
 
     @database_sync_to_async
@@ -318,7 +325,7 @@ class RoomConsumer(AsyncConsumer):
 
             for i in range(game.max_player):
                 player = SNLPlayer(
-                    game=game, player=members[i].member, color=colors[i])
+                    game=game, player=members[i].member, member=members[i], color=colors[i])
                 player.save()
             url = '/SNL/'+game.game_id+'/'
 

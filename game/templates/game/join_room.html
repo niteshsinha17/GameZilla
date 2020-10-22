@@ -11,10 +11,13 @@
   </head>
   <body>
     <div class="room">
-      <button onclick="ready_state_handler()" class="room__start">
-        {% if me.ready %} Not ready {% else %} Ready {% endif %}
+      <button
+        onclick="ready_state_handler(event)"
+        class="room__start {% if me.ready %} {% else %} ready {% endif %} d-100"
+      >
+        Ready
       </button>
-      <button onclick="leave()" class="room__leave">LEAVE</button>
+      <button onclick="leave(event)" class="room__leave d-100">LEAVE</button>
       <div
         style="background: url({{selected_game.img.url}});"
         class="room__bg"
@@ -131,7 +134,7 @@
       state = JSON.parse("{{state|escapejs}}");
       const ROOM_NO = state.room_no;
       const room = document.querySelector(".room__bg");
-
+      const members = document.querySelector(".members__list");
       // socket initiallisation
       const socket = new WebSocket(
         "ws://" + window.location.host + "/ws/room/" + ROOM_NO + "/"
@@ -164,6 +167,7 @@
       // socket functions
       socket.onmessage = function (e) {
         data = JSON.parse(e.data);
+        console.log(data["action"]);
         switch (data["action"]) {
           case add_member_:
             add_member(data);
@@ -236,23 +240,27 @@
         if (data["member"] === state.me) {
           return;
         }
-        let b = document.createElement("span");
-        b.setAttribute("id", `s_{data['member']}`);
-        // add class if any
-        if (data["ready"]) {
-          b.innerText = "READY";
-        } else {
-          b.innerText = "NOT READY";
-        }
-        let s = document.createElement("span");
-        s.innerHTML = data["member"];
+        $(members).append(create_member(data));
+        // online_status(data["member"], true);
+      };
 
-        let li = document.createElement("li");
-        li.setAttribute("id", `r_{data['member']}`);
-        li.appendChild(s);
-        li.appendChild(b);
-        members.appendChild(li);
-        online_status = (data["member"], true);
+      const create_member = (data) => {
+        let r = data["ready"] ? "ready" : "not ready";
+
+        return `<li id="r_${data["member"]}" class="members__item">
+                <div class="members_name">
+                  ${data["member"]}
+                  <span class="online">
+                    offline 
+                  </span>
+                </div>
+                <div class="members__btns">
+                  <button id="s_${data["member"]}" class="members__ready">
+                   ${r}
+                  </button>
+                </div>
+              </li>
+          `;
       };
       // online status
       const online_status = (member, state) => {
@@ -286,9 +294,9 @@
         }
         if (state.me == data["member"]) {
           if (data["state"]) {
-            document.querySelector(".room__start").innerText = "Not Ready";
+            $(".room__start").removeClass("ready");
           } else {
-            document.querySelector(".room__start").innerText = "Ready";
+            $(".room__start").addClass("ready");
           }
         }
       };
@@ -305,6 +313,13 @@
 
       const hide_detail = () => {
         $(room_detail).removeClass("show_detail");
+      };
+
+      const animate_btn = (btn) => {
+        $(btn).addClass("animate_btn");
+        setTimeout(() => {
+          $(btn).removeClass("animate_btn");
+        }, 100);
       };
 
       // game changed
@@ -326,11 +341,13 @@
       // //////////////////////////
 
       // leave
-      const leave = () => {
+      const leave = (event) => {
+        animate_btn(event.target);
         socket.send(JSON.stringify({ action: "leave" }));
       };
       // ready
-      const ready_state_handler = () => {
+      const ready_state_handler = (event) => {
+        animate_btn(event.target);
         let msg = {
           action: "change_ready",
         };

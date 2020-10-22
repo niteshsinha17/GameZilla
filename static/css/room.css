@@ -70,9 +70,9 @@
   position: absolute;
   padding: 5px 20px;
   border-radius: 26px;
-  border: 1px solid white;
+  border: 2px solid;
+  color: #ff9292;
   background: none;
-  color: white;
   text-transform: uppercase;
   font-size: 15px;
   font-weight: 700;
@@ -80,6 +80,10 @@
   outline: none;
   right: 10px;
   bottom: 10px;
+}
+
+.ready {
+  color: #40b962;
 }
 
 .room__share {
@@ -90,7 +94,7 @@
   padding: 5px 20px;
   color: #191976;
   margin: 0px auto;
-  border: 1px solid;
+  border: 2px solid;
   width: fit-content;
   font-weight: 500;
   cursor: pointer;
@@ -104,7 +108,7 @@
   color: white;
   position: absolute;
   text-transform: uppercase;
-  border: 1px solid;
+  border: 2px solid;
   font-size: 15px;
   padding: 5px 20px;
   font-weight: 700;
@@ -414,8 +418,8 @@
 @media (min-width: 680px) {
   .members__item {
     font-size: 20px;
+    width: 500px;
     margin: 30px 0px;
-    width: auto;
     font-weight: 500;
   }
   .members__btns {
@@ -424,6 +428,7 @@
   .members__ready {
     padding: 6px 30px;
     font-weight: 500;
+    width: 150px;
     font-size: 15px;
   }
   .members__remove {

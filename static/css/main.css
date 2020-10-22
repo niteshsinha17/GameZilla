@@ -19,6 +19,14 @@ body::-webkit-scrollbar {
   display: none;
 }
 
+.animate_btn {
+  transform: scale(0.8);
+}
+
+.d-100 {
+  transition-duration: 100s;
+  transition: unset;
+}
 a {
   font-size: 13px;
 }

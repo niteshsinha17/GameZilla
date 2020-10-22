@@ -11,8 +11,8 @@
   </head>
   <body style="position: relative">
     <div class="room">
-      <button onclick="start()" class="room__start">Start</button>
-      <button onclick="leave()" class="room__leave">LEAVE</button>
+      <button onclick="start(event)" class="room__start d-100">Start</button>
+      <button onclick="leave(event)" class="room__leave d-100">LEAVE</button>
       <div
         style="background: url({{selected_game.img.url}});"
         class="room__bg"
@@ -81,7 +81,7 @@
                   </button>
                   {% if member.host%} {% else %}
                   <button
-                    onclick="remove('{{member}}')"
+                    onclick="remove(event,'{{member}}')"
                     class="members__remove"
                   >
                     Remove
@@ -134,6 +134,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <script>
+      //---------------- CONSTANTS -----------
       const games = document.querySelectorAll(".g-card");
       const games_wrapper = document.querySelector(".games");
       const arrange_games = (n) => {
@@ -329,43 +330,38 @@
         if (data["member"] === state.me) {
           return;
         }
-
-        let name_div = document.createElement("div");
-        $(name_div).addClass("members__name");
-        let btn_div = document.createElement("div");
-        $(btn_div).addClass("members__btns");
-        let s = document.createElement("span");
-        $(s).addClass("online");
-        let ready_btn = document.createElement("button");
-        $(ready_btn).addClass("members__ready");
-        ready_btn.setAttribute("id", "s_" + data["member"]);
-
+        $(".members__list").append(create_member(data));
         if (data["ready"]) {
-          ready_btn.innerText = "READY";
-        } else {
-          ready_btn.innerText = "NOT READY";
+          state.members_ready += 1;
         }
+        state.members_joined += 1;
 
-        name_div.innerHTML = data["member"];
-        name_div.appendChild(s);
-        let li = document.createElement("li");
-        li.setAttribute("id", "r_" + data["member"]);
-        li.appendChild(name_div);
-        $(li).addClass("members__item");
-        btn_div.appendChild(ready_btn);
-        $(li).addClass("members__item");
-        if (!data["host"]) {
-          let remove_btn = document.createElement("button");
-          $(remove_btn).addClass("members__remove");
-          remove_btn.innerHTML = "remove";
-          remove_btn.setAttribute(
-            "onclick",
-            "remove(" + "'" + data["member"] + "'" + ")"
-          );
-          btn_div.appendChild(remove_btn);
-        }
-        li.appendChild(btn_div);
-        members.appendChild(li);
+        set_start();
+      };
+
+      const create_member = (data) => {
+        let r = data["ready"] ? "ready" : "not ready";
+
+        return `<li id="r_${data["member"]}" class="members__item">
+                <div class="members_name">
+                  ${data["member"]}
+                  <span class="online">
+                    offline 
+                  </span>
+                </div>
+                <div class="members__btns">
+                  <button id="s_${data["member"]}" class="members__ready">
+                   ${r}
+                  </button>
+                  <button
+              onclick="remove(event,'${data["member"]}')"
+              class="members__remove"
+             >
+              Remove
+              </button>
+                </div>
+              </li>
+          `;
       };
       // online status
       const online = (member, status) => {
@@ -383,16 +379,31 @@
         if (data["was_ready"]) {
           state.members_ready -= 1;
         }
-        state.members_removed -= 1;
+        state.members_joined -= 1;
+        set_start();
       };
 
       // show_ready
       const ready = (data) => {
         if (data["state"]) {
           document.getElementById("s_" + data["member"]).innerText = "READY";
+          state.members_ready += 1;
         } else {
           document.getElementById("s_" + data["member"]).innerText =
             "NOT READY";
+          state.members_ready -= 1;
+        }
+        set_start();
+      };
+
+      const set_start = () => {
+        if (
+          state.members_ready === state.members_joined &&
+          state.members_joined > 1
+        ) {
+          $(".room__start").addClass("ready");
+        } else {
+          $(".room__start").removeClass("ready");
         }
       };
       // game changed
@@ -415,7 +426,8 @@
       // //////////////////////////
 
       // remove a member
-      const remove = (member_name) => {
+      const remove = (event, member_name) => {
+        animate_btn(event.target);
         socket.send(
           JSON.stringify({
             action: "remove_player",
@@ -424,13 +436,22 @@
         );
       };
 
+      const animate_btn = (btn) => {
+        $(btn).addClass("animate_btn");
+        setTimeout(() => {
+          $(btn).removeClass("animate_btn");
+        }, 100);
+      };
+
       // leave
-      const leave = () => {
+      const leave = (event) => {
+        animate_btn(event.target);
         socket.send(JSON.stringify({ action: "leave" }));
       };
 
       // start game
-      const start = () => {
+      const start = (event) => {
+        animate_btn(event.target);
         socket.send(JSON.stringify({ action: "start" }));
       };
 
@@ -454,6 +475,8 @@
           })
         );
       };
+
+      set_start();
     </script>
   </body>
 </html>

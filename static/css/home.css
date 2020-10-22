@@ -121,14 +121,24 @@
 /* ///////////////////////// */
 .room {
   display: flex;
-  margin: 10px 0px;
+  padding: 10px 0px;
   width: 100%;
+  height: 22px;
   align-items: center;
-  justify-content: space-around;
+  position: relative;
+  justify-content: space-between;
 }
 
+.room__left {
+  display: flex;
+  align-items: center;
+}
+.room__id {
+  margin: 0px 10px;
+}
 .room__leave img {
   height: 22px;
+  width: 22px;
   display: block;
 }
 
@@ -150,4 +160,19 @@
   font-size: 15px;
   text-align: center;
   padding: 5px 10px;
+}
+
+.room__cover {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  background: #0000003e;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.room__cover .loader {
+  height: 20px;
+  width: 20px;
 }

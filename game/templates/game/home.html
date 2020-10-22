@@ -53,23 +53,41 @@
           </li>
           <li class="navigation__sub-item">Hosted Rooms</li>
           {% if hosted_rooms %} {% for room in hosted_rooms %}
-          <li class="room">
-            <div class="room__id">{{room.room.sp_id}}</div>
-            <a href="/room/{{room.room}}">JOIN</a>
-            <button class="room__leave" id="{{room.room.sp_id}}">
-              <img src="{% static 'icons/leave.png' %}" alt="" />
+          <li id="room_{{room.room.sp_id}}" class="room">
+            <div class="room__left">
+              <div class="room__id">{{room.room.sp_id}}</div>
+              <a href="/room/{{room.room}}">JOIN</a>
+            </div>
+
+            <button class="room__leave">
+              <img
+                class="d-100"
+                onclick="leave(event)"
+                id="{{room.room.sp_id}}"
+                src="{% static 'icons/leave.png' %}"
+                alt=""
+              />
             </button>
           </li>
           {% endfor %} {% else %} No room {% endif %}
           <li class="navigation__sub-item">Joined Rooms</li>
           {% if joined_rooms %} {% for room in joined_rooms %}
-          <li class="room">
-            <div class="room__id">{{room.room.sp_id}}</div>
-            <a href="/join/{{room.room.sp_id}}">JOIN</a>
+          <li id="room_{{room.room.sp_id}}" class="room">
+            <div class="room__left">
+              <div class="room__id">{{room.room.sp_id}}</div>
+              <a href="/join/{{room.room.sp_id}}">JOIN</a>
+            </div>
+            <button class="room__leave">
+              <img
+                class="d-100"
+                onclick="leave(event)"
+                id="{{room.room.sp_id}}"
+                src="{% static 'icons/leave.png' %}"
+                alt=""
+              />
+            </button>
           </li>
-          <button class="room__leave" id="{{room.room.sp_id}}">
-            <img src="{% static 'icons/leave.png' %}" alt="" />
-          </button>
+
           {% endfor %} {% else %} No room {% endif %}
         </ul>
       </div>
@@ -117,5 +135,38 @@
 
     <script src="{% static 'js/main.js' %}"></script>
     <script src="{% static 'js/resize.js' %}"></script>
+
+    <script>
+      const animate_btn = (btn) => {
+        console.log("animate");
+        $(btn).addClass("animate_btn");
+        setTimeout(() => {
+          $(btn).removeClass("animate_btn");
+        }, 100);
+      };
+      const leave = (event) => {
+        animate_btn(event.target);
+        id = event.target.id;
+        $("#room_" + id).append(`<div id='spinner_${id}' class="room__cover">
+          <div class="loader"></div>
+        </div>`);
+
+        $.get("/leave/" + id, function (data) {
+          console.log(data);
+          data = JSON.parse(data);
+          if (data[["deleted"]]) {
+            setTimeout(() => {
+              $("#room_" + id).remove();
+            }, 2000);
+          } else {
+            setTimeout(() => {
+              // $(".message").remove();
+              $("body").append(`<div class="message">${data["reason"]}</div>`);
+              $("#spinner_" + id).remove();
+            }, 2000);
+          }
+        });
+      };
+    </script>
   </body>
 </html>

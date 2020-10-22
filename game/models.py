@@ -35,13 +35,15 @@ class Room(models.Model):
 
 
 class Member(models.Model):
-    room = models.ForeignKey(Room, on_delete=CASCADE, null=True, blank=True)
+    room = models.ForeignKey(Room, on_delete=CASCADE,
+                             null=True, blank=True)
     member = models.ForeignKey(User, on_delete=CASCADE)
     ready = models.BooleanField(default=False)
     host = models.BooleanField(default=False)
     room = models.ForeignKey(Room, on_delete=CASCADE, blank=True, null=True)
     in_game = models.BooleanField(default=False)
     entered = models.BooleanField(default=False)
+    leaved = models.BooleanField(default=False)
     online = models.BooleanField(default=True)
 
     def __str__(self):

@@ -31,7 +31,8 @@ urlpatterns = [
     path('host/<str:game_code>/', game_views.host_game, name='host'),
     path('room/<slug:sp_id>/', game_views.host_room_view, name='host_room'),
     path('join/<slug:sp_id>/', game_views.join_game, name='join'),
-    path('SNL/<slug:game_id>/', SNL_views.game)
+    path('SNL/<slug:game_id>/', SNL_views.game),
+    path('leave/<slug:sp_id>/', game_views.leave)
     # path('snake-game/', include('snakeAndLadder'))
 
 ]

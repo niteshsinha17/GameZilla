@@ -2,13 +2,15 @@ from django.db import models
 from game.models import *
 from django.contrib.auth.models import User
 from django.db.models.deletion import CASCADE
+import time
+from django.db.models import Q
+import random
 # Create your models here.
 
 
 class SNL(models.Model):
     room = models.OneToOneField(Room, on_delete=CASCADE)
     game_id = models.SlugField()
-    # no use of winner
     started = models.BooleanField(default=False)
     max_player = models.IntegerField(default=0)
     current_player = models.ForeignKey(
@@ -17,13 +19,38 @@ class SNL(models.Model):
     current = models.IntegerField(null=True, blank=True)
     winner_state = models.IntegerField(default=0)
     players_playing = models.IntegerField(default=0)
-    player_entered = models.IntegerField(default=0)
-    player_disabled = models.IntegerField(default=0)
+    players_entered = models.IntegerField(default=0)
+    players_disabled = models.IntegerField(default=0)
     time_stamp = models.FloatField(null=True, blank=True)
     round = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.game_id
+
+    def start(self):
+        self.started = True
+        self.round = 0
+        self.time_stamp = time.time()
+        self.current = random.randint(0, self.players_playing-1)
+        players = self.players.filter(
+            Q(entered=True) & Q(disable=False) & Q(leaved=False))
+        self.current_player = players[self.current].player
+        self.save()
+
+    def get_new_state(self):
+        return {'current_player': self.current_player.username,
+                "time": 12,
+                "round": self.round
+                }
+
+    def get_state(self):
+        return {'current_player': self.current_player.username,
+                "time": 12 - int(time.time()-self.time_stamp),
+                "round": self.round
+                }
+
+    def match_state(self, state):
+        return (time.time()-self.time_stamp > 12) and state['round'] == self.round
 
 
 class SNLPlayer(models.Model):
@@ -38,15 +65,7 @@ class SNLPlayer(models.Model):
     player = models.ForeignKey(User, on_delete=CASCADE)
     rank = models.IntegerField(null=True, blank=True)
     color = models.CharField(max_length=10, default='', choices=COLORS)
-
-    # no use of ready
-    ready = models.BooleanField(default=False)
     online = models.BooleanField(default=True)
-    '''
-
-    disable will tell weather player win or not
-
-    '''
     leaved = models.BooleanField(default=False)
     disable = models.BooleanField(default=False)
     position = models.IntegerField(default=1)

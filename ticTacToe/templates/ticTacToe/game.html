@@ -1,0 +1,357 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GameZilla</title>
+    <link rel="stylesheet" href="{% static 'css/tac.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
+    <link
+      rel="shortcut icon"
+      href="{% static 'icons/game.png' type='image/x-icon' %}"
+    />
+  </head>
+  <body style="overflow: hidden">
+    <div class="rotate">
+      <p>Please turn on screen rotation and use phone in landscape mode</p>
+    </div>
+    <div class="spiner">
+      <div class="loader"></div>
+      <div class="loading_msg">Tryig to Connect.. Please wait</div>
+    </div>
+    <div style="background: #c9d0d4" class="chat">
+      <div class="chat__messages">
+        {% for message in messages %}
+        <div
+          class="chat__message {% if message.user != user %} other {% endif %}"
+        >
+          <h5 class="chat__sender">{{message.user}}</h5>
+          <p class="chat__msg {% if message.user != user %} other {% endif %}">
+            {{message.text}}
+          </p>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="chat__send">
+        <input
+          id="message"
+          class="chat__input"
+          type="text"
+          placeholder="Message"
+        />
+        <button
+          style="background: white"
+          onclick="send()"
+          class="chat__send-btn"
+        >
+          <img src="{% static 'icons/send.png' %}" alt="" />
+        </button>
+      </div>
+    </div>
+    <div class="TAC">
+      <div class="TAC__card">
+        <div class="TAC__board">
+          <div class="board">
+            <div class="TAC__row">
+              <div
+                style="
+                  border-top-color: transparent;
+                  border-left-color: transparent;
+                "
+                class="TAC__box"
+              ></div>
+              <div style="border-top-color: transparent" class="TAC__box"></div>
+              <div
+                style="
+                  border-top-color: transparent;
+                  border-right-color: transparent;
+                "
+                class="TAC__box"
+              ></div>
+            </div>
+
+            <div class="TAC__row">
+              <div
+                style="border-left-color: transparent"
+                class="TAC__box"
+              ></div>
+              <div class="TAC__box"></div>
+              <div
+                style="border-right-color: transparent"
+                class="TAC__box"
+              ></div>
+            </div>
+            <div class="TAC__row">
+              <div
+                style="
+                  border-bottom-color: transparent;
+                  border-left-color: transparent;
+                "
+                class="TAC__box"
+              ></div>
+              <div
+                style="border-bottom-color: transparent"
+                class="TAC__box"
+              ></div>
+              <div
+                style="
+                  border-bottom-color: transparent;
+                  border-right-color: transparent;
+                "
+                class="TAC__box"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="TAC__card">
+        <div class="TAC__details">
+          <div class="TAC__id">
+            GAME ID:
+            <div class="id">{{game.game_id}}</div>
+          </div>
+
+          <div class="TAC__states">
+            <div class="TAC__state">
+              TURN
+              <div class="current_player">{{game.current_player}}</div>
+            </div>
+            <div class="TAC__state">
+              TIME LEFT
+              <div class="timer">12</div>
+            </div>
+          </div>
+          <ul class="TAC__players">
+            <li id="l_{{game.cross.username}}" class="player cross">
+              <div class="player__icon">X</div>
+              {{game.cross.username}}
+              <div
+                class="player__active {% if not game.cross_active %} offline {% endif %}"
+              ></div>
+            </li>
+            <li id="l_{{game.zero.username}}" class="player">
+              <div class="player__icon">O</div>
+              {{game.zero.username}}
+              <div
+                class="player__active {% if not game.zero_active %} offline {% endif %}"
+              ></div>
+            </li>
+          </ul>
+
+          <ul class="settings">
+            <li class="settings__item">
+              <button
+                onclick="handle_exit(event)"
+                id="exit"
+                class="settings__btn"
+              >
+                <img class="d-100" src="{% static 'icons/exit.png' %}" alt="" />
+              </button>
+            </li>
+            <li class="settings__item">
+              <button
+                onclick="handle_sound(event)"
+                id="sound"
+                class="settings__btn"
+              >
+                <img
+                  class="d-100"
+                  src="{% static 'icons/sound.png' %}"
+                  alt=""
+                />
+              </button>
+            </li>
+            <li class="settings__item">
+              <button
+                onclick="handle_music(event)"
+                id="music"
+                class="settings__btn"
+              >
+                <img
+                  class="d-100"
+                  src="{% static 'icons/music.png' %}"
+                  alt=""
+                />
+              </button>
+            </li>
+            <li class="settings__item">
+              <button
+                onclick="handle_chat(event)"
+                id="chat"
+                class="settings__btn"
+              >
+                <div class="unread"></div>
+                <img class="d-100" src="{% static 'icons/msg2.png' %}" alt="" />
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <ul class="TAC__notification"></ul>
+
+    <div class="exit">
+      <div class="exit__wrapper">
+        <h3 class="exit__heading">Are you Confirm?</h3>
+        <ul class="exit__list">
+          <li class="exit__item">
+            <button onclick="leave()" class="leave exit__btn">
+              <img src="{% static 'icons/correct.png' %}" alt="" />
+            </button>
+            <div class="exit__option">YES</div>
+          </li>
+          <li class="exit__item">
+            <button class="stay exit__btn">
+              <img src="{% static 'icons/cross.png' %}" alt="" />
+            </button>
+            <div class="exit__option">NO</div>
+          </li>
+        </ul>
+        <p class="exit__para">
+          If Yes, You will not be able to join this game again
+        </p>
+      </div>
+    </div>
+
+    <audio
+      style="display: none"
+      id="sound_notification"
+      src="{% static 'music/notification.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      id="sound_msg"
+      src="{% static 'music/message.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      id="sound_circle"
+      src="{% static 'music/tac_circle.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      id="tac_music"
+      loop="true"
+      src="{% static 'music/tac_music.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <audio
+      style="display: none"
+      id="sound_win"
+      controls
+      src="{% static 'music/win.mp3' %}"
+      type="audio/mpeg"
+    ></audio>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
+
+    <script src="{% static 'js/tac.js' %}"></script>
+    <script>
+      // websocket settings
+
+      const details = JSON.parse("{{details|escapejs}}");
+      // websocket settings
+      const ROOM_NO = details.room_id;
+      var board = details.board;
+      var wsStart = "ws://";
+      if (window.location.protocol == "https:") {
+        wsStart = "wss://";
+      }
+      var endpoint = wsStart + window.location.host + /TAC/ + ROOM_NO + "/";
+      const socket = new ReconnectingWebSocket(endpoint);
+
+      socket.onmessage = function (e) {
+        if ($(".spiner").length) {
+          // remove spinner
+          $(".spiner").remove();
+        }
+        const data = JSON.parse(e.data);
+        if (
+          (data.action != "message" && data.action != "online") ||
+          (data.action != "leaved" && data.start == false)
+        ) {
+          clearTimeout(no_respose_timer);
+          clearTimer();
+        }
+        switch (data.action) {
+          case "player_changed":
+            started(data);
+            break;
+
+          case "started":
+            started(data);
+            break;
+
+          case "mark":
+            mark(data);
+            started(data);
+            break;
+
+          case "game_over":
+            mark(data);
+            game_over(data);
+            break;
+
+          case "leaved":
+            leaved(data);
+            break;
+
+          case "set_state":
+            if (data.error) {
+              started(data);
+            }
+            break;
+
+          case "again_entered":
+            started(data);
+            break;
+
+          case "error":
+            notification(data.error_msg);
+            break;
+
+          case "player_not_joined":
+            player_not_joined(data);
+            break;
+
+          case "message":
+            message(data);
+            break;
+
+          case "online":
+            online(data);
+            break;
+
+          default:
+            break;
+        }
+      };
+
+      function showStarting() {
+        $(".loading_msg").html(
+          "Connected, Starting in <span class='loading_time'>15</span> secs.."
+        );
+        let t = 15;
+        let loading_interval = setInterval(function () {
+          if (t < 1) {
+            clearInterval(loading_interval);
+          } else {
+            t--;
+            $(".loading_time").text(t);
+          }
+        }, 1000);
+      }
+      socket.onclose = function (e) {};
+      socket.onerror = function (e) {};
+      socket.onopen = function (e) {
+        showStarting();
+      };
+    </script>
+  </body>
+</html>

@@ -16,7 +16,7 @@ from django.contrib.auth import authenticate
 
 class LoginForm(forms.Form):
     username = forms.CharField(
-        max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'login__input', 'placeholder': 'Username'}))
+        max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'login__input', 'placeholder': 'Username','id':'username'}))
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'login__input', 'placeholder': 'Password'}))
 

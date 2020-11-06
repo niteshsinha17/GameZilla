@@ -19,7 +19,7 @@ from django.urls import path, include
 from game import views as game_views
 from account.views import *
 from snakeAndLadder import views as SNL_views
-
+from ticTacToe import views as TAC_views
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -28,10 +28,13 @@ urlpatterns = [
     path('', game_views.home, name='home'),
     path('register/', include('account.urls')),
     path('logout/', logout_, name='logout'),
+    path('report/', game_views.report, name='report'),
     path('host/<str:game_code>/', game_views.host_game, name='host'),
     path('room/<slug:sp_id>/', game_views.host_room_view, name='host_room'),
     path('join/<slug:sp_id>/', game_views.join_game, name='join'),
+    path('join/', game_views.join_room, name='join_room'),
     path('SNL/<slug:game_id>/', SNL_views.game),
+    path('TAC/<slug:game_id>/', TAC_views.game),
     path('leave/<slug:sp_id>/', game_views.leave)
     # path('snake-game/', include('snakeAndLadder'))
 

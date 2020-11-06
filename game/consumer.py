@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from game.models import *
 from snakeAndLadder.models import *
 import random
+from ticTacToe.models import TAC
 
 
 class RoomConsumer(AsyncConsumer):
@@ -29,7 +30,7 @@ class RoomConsumer(AsyncConsumer):
             })
 
             is_entered = await self.check_entered(username)
-            print(is_entered)
+
             if not is_entered:
                 data = await self.add_player(username)
                 await self.channel_layer.group_send(
@@ -47,7 +48,6 @@ class RoomConsumer(AsyncConsumer):
             )
 
     async def websocket_receive(self, event):
-        print("recieve", event)
         username = self.scope['user'].username
 
         is_member = self.check_member(username)
@@ -78,7 +78,6 @@ class RoomConsumer(AsyncConsumer):
         elif msg['action'] == 'remove_player':
             # must be sent by host
             if not is_host:
-                print('not host')
                 # not a host return
                 return
 
@@ -115,8 +114,6 @@ class RoomConsumer(AsyncConsumer):
         username = self.scope['user'].username
 
         is_member = await self.check_member(username)
-        print('not error')
-        print(is_member)
         if not is_member:
             return await self.send({
                 "type": "websocket.disconnect"
@@ -125,7 +122,7 @@ class RoomConsumer(AsyncConsumer):
         await self.send({
             "type": "websocket.disconnect"
         })
-        print('DIS here')
+
         data = await self.online(username, False)
         await self.channel_layer.group_send(
             self.room_no, {
@@ -174,7 +171,6 @@ class RoomConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def check_entered(self,  username):
-        print('-----------check entered')
         user = User.objects.get(username=username)
         room = Room.objects.get(sp_id=self.room_no)
         members = Member.objects.filter(room=room)
@@ -188,41 +184,26 @@ class RoomConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def check_member(self, username):
-        print('-----------------check member------------------')
         user = User.objects.get(username=username)
         try:
             room = Room.objects.get(sp_id=self.room_no)
         except:
             return False
-        is_member = True
         try:
             members = Member.objects.filter(room=room)
             members.get(member=user)
+            return True
         except:
-            is_member = False
-
-        return is_member
+            return False
 
     @database_sync_to_async
     def check_host(self, username):
         user = User.objects.get(username=username)
         room = Room.objects.get(sp_id=self.room_no)
-        is_host = True
-        try:
-            members = Member.objects.filter(room=room)
-            m = members.get(member=user)
-            is_host = m.host
-        except:
-            print('accept')
-            is_host = False
-
-        print(is_host)
-
-        return is_host
+        return room.created_by == user
 
     @database_sync_to_async
     def leave(self, username, is_host):
-        print('-----------leave---------------')
         if is_host:
             Room.objects.get(sp_id=self.room_no).delete()
             return {'action': 'leaved', 'member': 'all'}
@@ -230,12 +211,12 @@ class RoomConsumer(AsyncConsumer):
             user = User.objects.get(username=username)
             room = Room.objects.get(sp_id=self.room_no)
             members = Member.objects.filter(room=room)
-            m = members.get(member=user)
-            if m.ready:
+            member = members.get(member=user)
+            if member.ready:
                 room.members_ready -= 1
             room.members_joined -= 1
             room.save()
-            m.delete()
+            member.delete()
         return {'action': 'leaved', 'member': username}
 
     @database_sync_to_async
@@ -243,17 +224,15 @@ class RoomConsumer(AsyncConsumer):
         user = User.objects.get(username=username)
         room = Room.objects.get(sp_id=self.room_no)
         members = Member.objects.filter(room=room)
-        m = members.get(member=user)
+        member = members.get(member=user)
         return {
             'action': 'add_member',
             'member': username,
-            'ready': m.ready,
-            'host': m.host
+            'ready': member.ready,
         }
 
     @database_sync_to_async
     def remove_member(self, msg):
-        print('-------------remove member-----------')
         user = User.objects.get(username=msg['member'])
         room = Room.objects.get(sp_id=self.room_no)
         members = Member.objects.filter(room=room)
@@ -269,7 +248,6 @@ class RoomConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def change_game(self, msg):
-        print('--------------change game--------------')
         new_game_code = msg['code']
         new_game = Game.objects.get(code=new_game_code)
         room = Room.objects.get(sp_id=self.room_no)
@@ -278,14 +256,14 @@ class RoomConsumer(AsyncConsumer):
                     'changed': True,
                     'new_code': new_game_code,
                     'name': new_game.game_name,
-                    'max_members': new_game.max_player
+                    'max_members': new_game.max_player,
+                    'min_members': new_game.min_player
                     }
             data['url'] = msg['url']
             data['old_code'] = room.game.code
             room.max_members = new_game.max_player
             room.game = new_game
             room.save()
-
         else:
             data = {'action': 'game_changed',
                     'changed': False,
@@ -294,7 +272,6 @@ class RoomConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def start_game(self):
-        print('---------------start--------------')
         room = Room.objects.get(sp_id=self.room_no)
         if room.members_joined <= 1:
             return {'action': 'started',
@@ -311,24 +288,30 @@ class RoomConsumer(AsyncConsumer):
         room.save()
 
         if code == 'SNL':
+            # can be simplied more in future
             game = SNL(room=room, max_player=room.members_joined)
-            game.game_id = str(room.created_by.username) + \
-                'SNL00' + str(SNL.objects.all().count()+1)
-
             colors = ['RED', 'BLUE', 'YELLOW', 'GREEN']
             members = Member.objects.filter(room=room)
-
-            # NO USE
-            # game.current_player = members[random.randint(
-            #     0, game.max_player-1)].member
+            game.game_id = self.room_no
             game.save()
-
             for i in range(game.max_player):
                 player = SNLPlayer(
                     game=game, player=members[i].member, member=members[i], color=colors[i])
                 player.save()
             url = '/SNL/'+game.game_id+'/'
-
+        elif code == 'TAC':
+            game = TAC(room=room, game_id=self.room_no)
+            members = Member.objects.filter(room=room)
+            r = random.randint(0, 1)
+            game.zero = members[r].member
+            game.current = r
+            game.cross = members[1-r].member
+            if game.current == 0:
+                game.current_player = game.zero
+            else:
+                game.current_player = game.cross
+            game.save()
+            url = '/TAC/'+game.game_id+'/'
         room.game_url = url
         room.save()
         return {'action': 'started', 'can_start': True, 'url': url}

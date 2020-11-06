@@ -1,0 +1,116 @@
+/* jshint browser: true */ 
+/*jshint esversion: 6 */
+
+// variables for navigation
+const navigation = document.querySelector(".navigation");
+const navigation_icon = document.querySelector("#navigation-icon");
+const navigation_toggler = document.querySelector(".navigation__toggler");
+var screenOrientation;
+(function($){
+    "use strict";
+    $(document).ready(function(){
+        resizeOnLoad($);
+        removeLoader($);
+        initOnResize($);
+        joinHandler($);
+        navigationBarHandler($);   
+        initAjaxCalls($);
+        removeMessages($);
+        setRotate($);
+        $(window).bind("resize", function(){
+          screenOrientation = ($(window).width() > $(window).height())? 90 : 0;
+          // 90 means landscape, 0 means portrait
+          setRotate($);
+        });
+    });
+})(jQuery);
+
+function setRotate($){
+  screenOrientation = ($(window).width() > $(window).height())? 90 : 0;
+  // 90 means landscape, 0 means portrait
+  if(screenOrientation===0){
+    $('.rotate').removeClass('rotate-hide');
+  }
+  else{
+    $('.rotate').addClass('rotate-hide');
+  }
+}
+function removeLoader($){
+    $(".spiner").addClass("hide-spiner");
+}
+
+
+function joinHandler($){
+    $(".join__btn").on("click",function(e) {
+        e.stopPropagation();
+        $('#id_input').focus();
+      $('.join_dropdown').addClass("join_dropdown-active");
+    });
+  
+    $(".join_dropdown__cross").on("click", function(e){
+        e.stopPropagation();
+      $('.join_dropdown').removeClass("join_dropdown-active");
+    });
+
+    $(document).click(function (e) {
+        e.stopPropagation();
+        // Check if the clicked area is join_dropDown or not
+        if ($('.join_dropdown').has(e.target).length === 0) {
+            $('.join_dropdown').removeClass('join_dropdown-active');
+        }
+    });
+}
+
+function navigationBarHandler($){
+    $('.navigation__toggler').click(function(){
+        $(navigation).toggleClass("nav-active");
+        $(navigation_icon).toggleClass("active");
+        $(navigation_toggler).toggleClass("toggler-animate");
+    });
+}
+
+function initAjaxCalls($){
+    function animateButton(btn){
+        // used to animate buttons on click
+        $(btn).addClass("animate_btn");
+        setTimeout(() => {
+          $(btn).removeClass("animate_btn");
+        }, 100);
+    }
+
+    $('.leave_icon').click(function(e){
+        animateButton(e.target);
+        id = e.target.id;
+        let spinner =`<div id='spinner_${id}' class="room__cover">
+                        <div class="loader"></div>
+                     </div>`;
+        $("#room_" + id).append(spinner);
+        $.get("/leave/" + id, function (data) {
+            
+            let data_ = JSON.parse(data);
+            if (data_.deleted) {              
+              $("#room_" + id).remove();              
+            } else {
+              let message_id = $('.message').length;
+              let m = document.createElement('div');
+              $(m).addClass('message');
+              $(m).text(data_.reason);
+              $("body").append(m);
+              $("#spinner_" + id).remove();            
+              removeMessages(m);
+            }
+          });
+    });
+}
+
+function removeMessages($){
+  removeMessage('.message');
+}
+
+function removeMessage(m){
+  setTimeout(function(){
+    $(m).slideUp(500,function(){
+        $(m).remove();
+    });
+  }, 3000);
+}

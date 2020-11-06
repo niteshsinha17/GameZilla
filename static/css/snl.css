@@ -61,6 +61,9 @@
   justify-content: space-evenly;
 }
 
+.disable {
+  filter: grayscale(0.8);
+}
 .SNL__state {
   font-weight: 700;
   padding: 4px 0px;
@@ -147,17 +150,8 @@
   padding: 4px 0px;
   margin: 10px 0px;
   justify-content: space-between;
-  animation: animate-notification 1s;
 }
 
-@keyframes animate-notification {
-  0% {
-    margin-left: 120%;
-  }
-  100% {
-    margin-left: 0%;
-  }
-}
 .notification__btn {
   display: flex;
   align-items: center;
@@ -259,6 +253,10 @@
   justify-content: center;
 }
 
+.settings__btn img {
+  pointer-events: none;
+}
+
 .on {
   background: #c7f08b;
 }
@@ -344,6 +342,10 @@
   background: #507e3f;
 }
 
+.settings__btn img {
+  pointer-events: none;
+}
+
 .exit img {
   height: 44px;
   width: 44px;
@@ -374,35 +376,38 @@
   position: absolute;
   width: 80%;
   display: none;
-  align-items: center;
   z-index: 11;
-  display: none;
   background: white;
-  top: 50%;
+  top: 5%;
   left: 10%;
-  overflow: hidden;
-  height: 0%;
-  flex-direction: column;
-  justify-content: center;
+  height: 90%;
   border-radius: 3px;
   box-shadow: 10px 0px 10px #0000002e;
-  transition-duration: 0.5s;
 }
-
-.show_winners {
+.winner_animate_div {
   display: flex;
+  opacity: 0;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
 }
-
+.winner__heading {
+  font-size: 50px;
+  font-weight: 700;
+  color: #fdd835;
+  margin-bottom: 20px;
+}
+.winners__leaved {
+  margin-top: 10px;
+}
 .winners__wrapper {
   display: flex;
-  padding-top: 20px;
-  opacity: 0;
-  height: 100%;
   justify-content: space-evenly;
-  width: 90%;
+  width: 100%;
 }
 
-.show_winners_wrapper {
+.winner_animate {
   animation: animate-wrapper 1s 1 ease forwards;
 }
 
@@ -421,14 +426,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  font-weight: 700;
   align-items: center;
+  font-size: 15px;
 }
 
-.winner__img {
-  width: 50px;
-  background: #eee;
-  height: 50px;
-  margin-bottom: 20px;
+.winners__img {
+  font-size: 20px;
+  color: #7cb342;
 }
 
 .winner__name {
@@ -439,14 +444,13 @@
 
 .winners__btns {
   width: 60%;
-  opacity: 0;
+  margin-top: 50px;
   justify-content: space-evenly;
   display: flex;
-  padding-bottom: 20px;
 }
 .winners__room {
-  padding: 5px 15px;
-  background: red;
+  padding: 8px 15px;
+  background: #97bc62;
   color: white;
   text-decoration: none;
   text-transform: uppercase;
@@ -457,11 +461,10 @@
 }
 
 .winners__exit {
-  padding: 5px 15px;
-
+  padding: 8px 15px;
   text-decoration: none;
   text-transform: uppercase;
-  background: #97bc62;
+  background: #f4511e;
   color: white;
   font-weight: 800;
   letter-spacing: 1.2px;
@@ -484,4 +487,16 @@
 
 .show_unread {
   display: block;
+}
+
+.websocket_message {
+  position: fixed;
+  color: white;
+  bottom: 15%;
+  width: 100%;
+  text-align: center;
+  font-style: italic;
+  z-index: 100;
+  font-weight: 700;
+  font-size: 13px;
 }

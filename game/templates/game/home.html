@@ -4,12 +4,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index Page</title>
+    <title>GameZilla</title>
+    <link
+      rel="shortcut icon"
+      href="{% static 'icons/game.png' type='image/x-icon' %}"
+    />
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
     <link rel="stylesheet" href="{% static 'css/home.css' %}" />
     <link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
   </head>
-  <body style="background: #eee" onload="loaded()">
+  <body style="background: #eee">
+    <div class="rotate">
+      <p>Please turn on screen rotation and use phone in landscape mode</p>
+    </div>
     <div class="spiner">
       <div class="loader"></div>
     </div>
@@ -21,7 +30,7 @@
         <div class="navigation__brand">
           <img src="{% static 'icons/logo.png' %}" alt="" />
         </div>
-        <span onclick="navigationBarHandler()" class="navigation__toggler">
+        <span class="navigation__toggler">
           <img
             id="navigation-icon"
             src="{% static 'icons/arrow.png' %}"
@@ -36,34 +45,33 @@
             <a href="" class="navigation__link active">Home</a>
           </li>
           <li class="navigation__item">
-            <a href="" class="navigation__link">Report</a>
+            <a href="{% url 'report' %}" class="navigation__link">Report</a>
           </li>
-          <li class="navigation__item">
+          <!-- <li class="navigation__item">
             <a href="" class="navigation__link">Something</a>
-          </li>
+          </li> -->
           <li class="navigation__sub-item">Setting</li>
-          <li class="navigation__item">
+          <!-- <li class="navigation__item">
             <a href="" class="navigation__link">Password Reset</a>
           </li>
           <li class="navigation__item">
             <a href="" class="navigation__link">Change Email</a>
-          </li>
+          </li> -->
           <li class="navigation__item">
-            <a href="" class="navigation__link">Logout</a>
+            <a href="{% url 'logout' %}" class="navigation__link">Logout</a>
           </li>
           <li class="navigation__sub-item">Hosted Rooms</li>
           {% if hosted_rooms %} {% for room in hosted_rooms %}
-          <li id="room_{{room.room.sp_id}}" class="room">
+          <li id="room_{{room.sp_id}}" class="room">
             <div class="room__left">
-              <div class="room__id">{{room.room.sp_id}}</div>
-              <a href="/room/{{room.room}}">JOIN</a>
+              <div class="room__id">{{room.sp_id}}</div>
+              <a href="/room/{{room}}">JOIN</a>
             </div>
 
             <button class="room__leave">
               <img
-                class="d-100"
-                onclick="leave(event)"
-                id="{{room.room.sp_id}}"
+                class="d-100 leave_icon"
+                id="{{room.sp_id}}"
                 src="{% static 'icons/leave.png' %}"
                 alt=""
               />
@@ -72,16 +80,15 @@
           {% endfor %} {% else %} No room {% endif %}
           <li class="navigation__sub-item">Joined Rooms</li>
           {% if joined_rooms %} {% for room in joined_rooms %}
-          <li id="room_{{room.room.sp_id}}" class="room">
+          <li id="room_{{room.sp_id}}" class="room">
             <div class="room__left">
-              <div class="room__id">{{room.room.sp_id}}</div>
-              <a href="/join/{{room.room.sp_id}}">JOIN</a>
+              <div class="room__id">{{room.sp_id}}</div>
+              <a href="/join/{{room.sp_id}}">JOIN</a>
             </div>
             <button class="room__leave">
               <img
-                class="d-100"
-                onclick="leave(event)"
-                id="{{room.room.sp_id}}"
+                class="d-100 leave_icon"
+                id="{{room.sp_id}}"
                 src="{% static 'icons/leave.png' %}"
                 alt=""
               />
@@ -124,49 +131,21 @@
         <img src="{% static 'icons/cross.png' %}" alt="" />
       </button>
       <h3 class="join_dropdown__heading">JOIN GAME</h3>
-      <form action="POST">
-        <input type="text" placeholder="Game Id" />
-        <input type="password" placeholder="Password" />
+      <form method="POST" action="{% url 'join_room' %}">
+        {% csrf_token %}
+        <input
+          name="sp-id"
+          id="id_input"
+          required
+          type="text"
+          placeholder="Game Id"
+        />
         <input class="join_dropdown__btn" type="submit" placeholder="JOIN" />
       </form>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    <script src="{% static 'js/main.js' %}"></script>
     <script src="{% static 'js/resize.js' %}"></script>
-
-    <script>
-      const animate_btn = (btn) => {
-        console.log("animate");
-        $(btn).addClass("animate_btn");
-        setTimeout(() => {
-          $(btn).removeClass("animate_btn");
-        }, 100);
-      };
-      const leave = (event) => {
-        animate_btn(event.target);
-        id = event.target.id;
-        $("#room_" + id).append(`<div id='spinner_${id}' class="room__cover">
-          <div class="loader"></div>
-        </div>`);
-
-        $.get("/leave/" + id, function (data) {
-          console.log(data);
-          data = JSON.parse(data);
-          if (data[["deleted"]]) {
-            setTimeout(() => {
-              $("#room_" + id).remove();
-            }, 2000);
-          } else {
-            setTimeout(() => {
-              // $(".message").remove();
-              $("body").append(`<div class="message">${data["reason"]}</div>`);
-              $("#spinner_" + id).remove();
-            }, 2000);
-          }
-        });
-      };
-    </script>
+    <script src="{% static 'js/home.js' %}"></script>
   </body>
 </html>

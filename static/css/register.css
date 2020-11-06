@@ -9,7 +9,7 @@
   font-family: roboto;
   display: flex;
   flex-direction: column;
-  background: #ffffffe8;
+  background: #2b2b2be8;
   justify-content: center;
   align-items: center;
 }
@@ -32,10 +32,10 @@
   padding: 4px 20px;
   border-radius: 26px;
   font-weight: 800;
-  color: #3434a4;
+  color: #e3f2fd;
   cursor: pointer;
   font-size: 20px;
-  border-color: #342ca1;
+  border-color: #e3f2fd;
 }
 
 .register__forms {
@@ -104,6 +104,17 @@
   bottom: 0px;
   position: absolute;
   padding: 10px 0px;
+}
+
+.errorlist {
+  color: rgb(255, 61, 61);
+  font-size: 13px;
+  list-style: none;
+}
+
+.register__forget {
+  color: rgb(255, 61, 61);
+  cursor: pointer;
 }
 
 @keyframes animate-btn {
@@ -306,4 +317,18 @@
   color: #2933ac;
   font-weight: 500;
   text-transform: uppercase;
+}
+
+.message {
+  position: absolute;
+  width: 60%;
+  left: 20%;
+  color: red;
+  z-index: 3;
+  font-weight: 700;
+  background: white;
+  text-align: center;
+  font-size: 13px;
+  padding: 5px 0px;
+  top: 3%;
 }

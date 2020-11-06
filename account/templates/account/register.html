@@ -4,11 +4,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Account</title>
+    <title>GameZilla</title>
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+    <link
+      rel="shortcut icon"
+      href="{% static 'icons/game.png' type='image/x-icon' %}"
+    />
+    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
     <link rel="stylesheet" href="{% static 'css/register.css' %}" />
   </head>
   <body>
+    <div class="rotate">
+      <p>Please turn on screen rotation and use phone in landscape mode</p>
+    </div>
+    <div class="spiner">
+      <div class="loader"></div>
+    </div>
     <div class="background">
       <div class="background__nav">
         <a class="background__brand">
@@ -50,18 +61,16 @@
         <div id="ss3" class="s_slider">
           <div style="color: white" class="s_slider__content">
             <h1 style="color: white" class="s_slider__heading">
-              Welcome as Guest
+              Lots of Games
             </h1>
-            <p class="s_slider__para">
-              Partially access as a Guest login, no need to add Gmail
-            </p>
+            <p class="s_slider__para">Multiples games are avialable</p>
           </div>
         </div>
       </div>
 
-      <div class="register">
+      <div class="register {% if show %} active {% endif %}">
         <div class="register__up">
-          <a onclick="show_register()" class="register__navigator"> Regiter </a>
+          <a id="register_btn" class="register__navigator">Regiter</a>
         </div>
         <div class="register__forms">
           <div
@@ -71,32 +80,33 @@
             <h2 class="register__heading">Register</h2>
             <p class="register__para">Its simple and fast.</p>
             <div class="register__divider"></div>
-            <form method="POST">
+            <form id="registration_form" method="POST">
               {% csrf_token%}
               <input type="hidden" name="form_type" value="register" />
               {% for field in registration_form %}
               <p class="register__field-error">{{field.errors}}</p>
               {{field}} {% endfor %}
               <div class="register__btns">
-                <input type="submit" class="register__btn" value="Sign Up" />
-                <p class="register__forget">Forget Password</p>
+                <input
+                  id="btn_register"
+                  type="submit"
+                  class="register__btn"
+                  value="Sign Up"
+                />
+                <!-- <p class="register__forget">Forget Password</p> -->
               </div>
             </form>
           </div>
         </div>
 
         <div class="register__down">
-          <a onclick="hide_register()" class="register__navigator">Login</a>
+          <a id="login_btn" class="register__navigator">Login</a>
         </div>
       </div>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    <script
-      src="https://kit.fontawesome.com/a0acbb8bf8.js"
-      crossorigin="anonymous"
-    ></script>
-    <script src="{% static 'js/main.js' %}"></script>
+    <!-- <script src="{% static 'js/main.js' %}"></script> -->
+    <script src="{% static 'js/register.js' %}"></script>
   </body>
 </html>

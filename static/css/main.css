@@ -58,7 +58,12 @@ button {
   align-items: center;
   justify-content: center;
   position: fixed;
+  flex-direction: column;
   z-index: 101;
+}
+.loading_msg {
+  color: white;
+  margin-top: 20px;
 }
 
 .hide-spiner {

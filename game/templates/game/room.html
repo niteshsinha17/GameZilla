@@ -4,15 +4,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Gamezilla</title>
+    <link
+      rel="shortcut icon"
+      href="{% static 'icons/game.png' type='image/x-icon' %}"
+    />
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
     <link rel="stylesheet" href="{% static 'css/room.css' %}" />
     <link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
   </head>
   <body style="position: relative">
+    <div class="rotate">
+      <p>Please turn on screen rotation and use phone in landscape mode</p>
+    </div>
+    <div class="spiner">
+      <div class="loader"></div>
+    </div>
     <div class="room">
-      <button onclick="start(event)" class="room__start d-100">Start</button>
-      <button onclick="leave(event)" class="room__leave d-100">LEAVE</button>
+      <button class="room__start d-100">Start</button>
+      <button class="room__leave d-100">LEAVE</button>
       <div
         style="background: url({{selected_game.img.url}});"
         class="room__bg"
@@ -21,21 +32,22 @@
       <div class="room__game_detail">
         <h2 class="room__heading">
           <img src="{% static 'icons/game.png' %}" alt="" />
-          {{selected_game.game_name}}
+          <span>{{selected_game.game_name}}</span>
         </h2>
         <span>
-          <button onclick="show_detail()" id="detail_icon">
+          <button id="detail_icon">
             <img src="{% static 'icons/home.png' %}" alt="" />
           </button>
-          <button id="setting" onclick="show_gd()">
+          <button id="setting">
             <img src="{% static 'icons/setting.png' %}" alt="" />
           </button>
         </span>
       </div>
+
       <div class="container">
         <div class="row">
           <div class="room__detail">
-            <span onclick="hide_detail()" class="detail__cross"></span>
+            <span class="detail__cross"></span>
             <h3 class="room__sub-heading">Room details</h3>
             <ul class="detail">
               <li class="detail__item">
@@ -46,22 +58,25 @@
                 <span class="bold">{{room.created_by.username}}</span>
               </li>
               <li class="detail__item">
-                Password : <span class="bold">{{room.password}}</span>
-              </li>
-              <li class="detail__item">
                 Members Joined :
-                <span class="bold">{{room.joined_member}}</span>
+                <span id="members_joined" class="bold"
+                  >{{room.members_joined}}</span
+                >
               </li>
               <li class="detail__item">
                 Max Players :
-                <span class="bold">{{room.game.max_players}}</span>
+                <span id="max_member" class="bold"
+                  >{{room.game.max_player}}</span
+                >
               </li>
               <li class="detail__item">
-                Min Players : <span class="bold">{{room.game.min_player}}</span>
+                Min Players :
+                <span id="min_member" class="bold"
+                  >{{room.game.min_player}}</span
+                >
               </li>
             </ul>
-
-            <button onclick="copy()" class="room__share">Invite Link</button>
+            <button class="room__share">Invite Link</button>
           </div>
 
           <div class="members">
@@ -98,17 +113,16 @@
       <div class="games_dropdown">
         <div class="games_dropdown__top">
           <h2 class="games_dropdown__heading">Change Game</h2>
-          <span onclick="hide_gd()" class="games_dropdown__cross"></span>
+          <span class="games_dropdown__cross d-100"></span>
         </div>
         <div class="games">
           {% for game in games %}
           <a
             id="{{game.code}}"
-            onclick="change(event)"
             class="g-card {% if game.code == selected_game.code %} selected {% endif %}"
           >
             <img
-              id="img_{game.code}"
+              id="img_{{game.code}}"
               class="g-card__img"
               src="{{game.img.url}}"
               alt=""
@@ -132,160 +146,57 @@
     <!-- //////////////////////////////// -->
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
+    <script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
     <script>
-      //---------------- CONSTANTS -----------
-      const games = document.querySelectorAll(".g-card");
-      const games_wrapper = document.querySelector(".games");
-      const arrange_games = (n) => {
-        row_ = Math.floor(games.length / n);
-        extra = games.length % n;
-        var count = 0;
-
-        for (let i = 0; i < row_; i++) {
-          let row = document.createElement("div");
-          row.setAttribute("class", "row");
-          for (let i = 0; i < n; i++) {
-            row.appendChild(games[count]);
-            count++;
-          }
-          games_wrapper.appendChild(row);
-        }
-
-        if (extra > 0) {
-          let row = document.createElement("div");
-          row.setAttribute("class", "row");
-          while (count < games.length) {
-            row.appendChild(games[count]);
-            count++;
-          }
-
-          games_wrapper.appendChild(row);
-        }
-
-        games.forEach((element) => {
-          $(element).show();
-        });
-      };
-
-      // ////////////////
-      //  room detail
-      // ///////////////
-
-      const room_detail = document.querySelector(".room__detail");
-
-      const show_detail = () => {
-        $(room_detail).addClass("show_detail");
-      };
-
-      const hide_detail = () => {
-        $(room_detail).removeClass("show_detail");
-      };
-
-      arrange_games(3);
-
-      // /////////////////////
-      //  show message
-      // ////////////////////
-
-      const show_message = (msg) => {
-        var m = document.createElement("div");
-        m.innerText = msg;
-        m.setAttribute("class", "message");
-        document.querySelector(".room").appendChild(m);
-        setTimeout(() => {
-          m.remove();
-        }, 2000);
-      };
-      var text = "Hye Come And play with me On Gamezilla";
-      const copy = () => {
-        var textArea = document.createElement("textarea");
-        textArea.value = text;
-
-        // Avoid scrolling to bottom
-        textArea.style.top = "0";
-        textArea.style.left = "0";
-        textArea.style.position = "fixed";
-        textArea.style.zIndex = "100";
-        textArea.style.display = "none";
-
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand("copy");
-
-        show_message("link copied");
-      };
-
-      // ///////////////////
-      //  games dropdown
-      // //////////////////
-      const setting = document.querySelector("#setting");
-      const g_d = document.querySelector(".games_dropdown");
-      const show_gd = () => {
-        $(setting).addClass("setting_active");
-        $(g_d).addClass("games_dropdown-active");
-      };
-
-      const hide_gd = () => {
-        $(setting).removeClass("setting_active");
-        $(g_d).removeClass("games_dropdown-active");
-      };
-      // STATE
-      let state = null;
-      // let state = {
-      //   me: null,
-      //   members_ready: null,
-      //   can_start: false,
-      //   max_member: null,
-      //   members_joined: null,
-      //   game:null,
-      //   room_no:no,
-      // };
-
+      "use strict";
       //   getting state from response
-      state = JSON.parse("{{state|escapejs}}");
+      var state = JSON.parse("{{state|escapejs}}");
       const ROOM_NO = state.room_no;
-      const error_ = document.querySelector(".error");
-      const members = document.querySelector(".members__list");
 
-      // socket initiallisation
-      const socket = new WebSocket(
-        "ws://" + window.location.host + "/ws/room/" + ROOM_NO + "/"
-      );
+      function online(member, status) {
+        let id = "#r_" + member + " .online";
+        if (status) {
+          $(id).text("online");
+        } else {
+          $(id).text("offline");
+        }
+      }
+      // websocket connection
+      var wsStart = "ws://";
+      if (window.location.protocol == "https:") {
+        wsStart = "wss://";
+      }
+      var endpoint = wsStart + window.location.host + /room/ + ROOM_NO + "/";
+      const socket = new ReconnectingWebSocket(endpoint);
 
-      // Action types
-      const add_member_ = "add_member";
-      const member_removed_ = "member_removed";
-      const started_ = "started";
-      const ready_ = "ready";
-      const game_changed_ = "game_changed";
-      const online_ = "online";
-      const leaved_ = "leaved";
-      // socket functions
       socket.onmessage = function (e) {
-        data = JSON.parse(e.data);
+        var data = JSON.parse(e.data);
         switch (data["action"]) {
-          case add_member_:
+          case "add_member":
             add_member(data);
             break;
-          case member_removed_:
+
+          case "member_removed":
             remove_member(data);
             break;
-          case started_:
+
+          case "started":
             started(data);
             break;
-          case ready_:
+
+          case "ready":
             ready(data);
             break;
-          case game_changed_:
+
+          case "game_changed":
             game_changed(data);
             break;
 
-          case online_:
+          case "online":
             online(data["member"], data["status"]);
             break;
-          case leaved_:
+
+          case "leaved":
             leaved(data);
             break;
 
@@ -294,190 +205,15 @@
         }
       };
 
-      socket.onclose = function (e) {
-        console.log("onclose", e);
-      };
-      socket.onerror = function (e) {
-        console.log("onerror", e);
-      };
-      socket.onopen = function (e) {
-        console.log("onopen", e);
-      };
+      socket.onclose = function (e) {};
 
-      // ////////////////////////////
-      //   Recieving functions
-      // ////////////////////////////
+      socket.onerror = function (e) {};
 
-      //  Game started
-      const started = (data) => {
-        if (data["can_start"]) {
-          window.location.href = data["url"];
-        } else {
-          show_message(data["error"]);
-        }
-      };
-
-      // leaved
-      const leaved = (data) => {
-        if (data["member"] === state.me || data["member"] === "all") {
-          window.location.href = "/";
-        }
-        remove_member(data);
-      };
-
-      // add_member
-      const add_member = (data) => {
-        if (data["member"] === state.me) {
-          return;
-        }
-        $(".members__list").append(create_member(data));
-        if (data["ready"]) {
-          state.members_ready += 1;
-        }
-        state.members_joined += 1;
-
-        set_start();
-      };
-
-      const create_member = (data) => {
-        let r = data["ready"] ? "ready" : "not ready";
-
-        return `<li id="r_${data["member"]}" class="members__item">
-                <div class="members_name">
-                  ${data["member"]}
-                  <span class="online">
-                    offline 
-                  </span>
-                </div>
-                <div class="members__btns">
-                  <button id="s_${data["member"]}" class="members__ready">
-                   ${r}
-                  </button>
-                  <button
-              onclick="remove(event,'${data["member"]}')"
-              class="members__remove"
-             >
-              Remove
-              </button>
-                </div>
-              </li>
-          `;
-      };
-      // online status
-      const online = (member, status) => {
-        let id = "#r_" + member + " .online";
-        if (status) {
-          document.querySelector(id).innerText = "online";
-        } else {
-          document.querySelector(id).innerText = "offline";
-        }
-      };
-
-      // Remove member
-      const remove_member = (data) => {
-        $("#r_" + data["member"]).remove();
-        if (data["was_ready"]) {
-          state.members_ready -= 1;
-        }
-        state.members_joined -= 1;
-        set_start();
-      };
-
-      // show_ready
-      const ready = (data) => {
-        if (data["state"]) {
-          document.getElementById("s_" + data["member"]).innerText = "READY";
-          state.members_ready += 1;
-        } else {
-          document.getElementById("s_" + data["member"]).innerText =
-            "NOT READY";
-          state.members_ready -= 1;
-        }
-        set_start();
-      };
-
-      const set_start = () => {
-        if (
-          state.members_ready === state.members_joined &&
-          state.members_joined > 1
-        ) {
-          $(".room__start").addClass("ready");
-        } else {
-          $(".room__start").removeClass("ready");
-        }
-      };
-      // game changed
-      const game_changed = (data) => {
-        if (!data["changed"]) {
-          show_message(data["error"]);
-          return;
-        }
-
-        room.style.background = "url(" + data["url"] + ")";
-        document.querySelector(".room__heading").innerText =
-          data["name"] + "(" + data["max_members"] + ")";
-        state.game_code = data["new_code"];
-        $(document.getElementById(data["old_code"])).removeClass("selected");
-        $(document.getElementById(data["new_code"])).addClass("selected");
-      };
-
-      // //////////////////////////
-      //   Sending Functions
-      // //////////////////////////
-
-      // remove a member
-      const remove = (event, member_name) => {
-        animate_btn(event.target);
-        socket.send(
-          JSON.stringify({
-            action: "remove_player",
-            member: member_name,
-          })
-        );
-      };
-
-      const animate_btn = (btn) => {
-        $(btn).addClass("animate_btn");
-        setTimeout(() => {
-          $(btn).removeClass("animate_btn");
-        }, 100);
-      };
-
-      // leave
-      const leave = (event) => {
-        animate_btn(event.target);
-        socket.send(JSON.stringify({ action: "leave" }));
-      };
-
-      // start game
-      const start = (event) => {
-        animate_btn(event.target);
-        socket.send(JSON.stringify({ action: "start" }));
-      };
-
-      // ///////////////////////
-      // Frontend functions
-      // ///////////////////////
-
-      // ///////////
-      //  change game
-      // ////////////
-
-      const bg_games = document.querySelectorAll(".g-card__img");
-      const room = document.querySelector(".room__bg");
-
-      const change = (event) => {
-        socket.send(
-          JSON.stringify({
-            action: "change_game",
-            url: event.target.src,
-            code: event.target.id,
-          })
-        );
-      };
-
-      set_start();
+      socket.onopen = function (e) {};
     </script>
+
+    <script src="{% static 'js/resize.js' %}"></script>
+    <script src="{% static 'js/host.js' %}"></script>
   </body>
 </html>
 

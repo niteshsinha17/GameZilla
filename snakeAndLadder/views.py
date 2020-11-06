@@ -27,11 +27,13 @@ def game(request, game_id):
 
     if game.started and (player.leaved or not player.entered):
         messages.add_message(
-            request, messages.INFO, 'Cant join, You already leaved')
+            request, messages.INFO, 'Cant join, You already leaved or removed due to network')
         return redirect('home')
 
     players_json = [{'name': player.player.username,
-                     'position': player.position} for player in players]
+                     'position': player.position,
+                     'can_move': player.can_move}
+                    for player in players]
     context['players'] = players
     context['messages'] = game.message.all()
     context['player'] = player

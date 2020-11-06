@@ -11,39 +11,32 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db.models import Q
 from snakeAndLadder.models import SNL
+from .forms import ReportForm
 # Create your views here.
 
 
+@login_required
 def home(request):
     user = request.user
     context = {}
-    if user.is_authenticated:
-        games = Game.objects.all()
-        rooms = Member.objects.filter(member=user)
-        hosted_rooms = rooms.filter(host=True)
-        joined_romms = rooms.filter(Q(host=False) & Q(leaved=False))
-        for room in rooms:
-            print(room.room.sp_id)
-
-        context['games'] = games
-        context['hosted_rooms'] = hosted_rooms
-        context['joined_rooms'] = joined_romms
-        return render(request, 'game/home.html', context)
-    else:
-        return redirect('register')
+    games = Game.objects.all()
+    hosted_rooms = Room.objects.get_hosted_rooms(user=user)
+    joined_romms = Member.objects.get_joined_rooms(user=user)
+    context['games'] = games
+    context['hosted_rooms'] = hosted_rooms
+    context['joined_rooms'] = joined_romms
+    return render(request, 'game/home.html', context)
 
 
 @login_required
 def host_game(request, game_code):
     user = request.user
     game = Game.objects.get(code=game_code)
-    rooms = Room.objects.filter(created_by=user)
-    if rooms.count() == 3:
+    if not Room.objects.can_create_room(user=user):
         messages.add_message(
             request, messages.INFO, 'You have created maximum rooms. Please exit from there to create new room')
         return redirect('home')
     room = Room(game=game, created_by=user)
-    room.sp_id = user.username + '00' + str(Room.objects.all().count()+1)
     room.max_members = game.max_player
     room.save()
     return redirect('host_room', sp_id=room.sp_id)
@@ -67,7 +60,6 @@ def host_room_view(request, sp_id):
         return redirect(room.game_url)
 
     # game is not started
-
     # check host is created or not as a member
     created = True
     members = Member.objects.filter(room=room)
@@ -80,34 +72,39 @@ def host_room_view(request, sp_id):
         created = False
 
     if not created:
-        print('------------host not created----------------')
         member = Member(member=user, host=True, ready=True)
         member.room = room
         member.save()
         room.members_joined += 1
         room.save()
 
-    # make ready using consumer if already
-    state = {
-        'me': user.username,
-        'game_code': room.game.code,
-        'max_members': room.max_members,
-        'members_joined': room.members_joined,
-        'members_ready': room.members_ready,
-        'room_no': sp_id
-    }
-
+    state = room.get_state()
+    state['me'] = user.username
     context['games'] = Game.objects.all()
     context['selected_game'] = room.game
     context['members'] = members
     context['state'] = json.dumps(state)
+    context['room'] = room
     context['me'] = member
-
     return render(request, 'game/room.html', context)
 
 
 @login_required
-def join_game(request, sp_id):
+def report(request):
+    if request.POST:
+        report_form = ReportForm(request.user, request.POST)
+        if report_form.is_valid():
+            report_form.save()
+            messages.add_message(
+                request, messages.INFO, 'Thanks for reporting')
+            return redirect('home')
+    else:
+        report_form = ReportForm(request.user)
+    return render(request, 'game/report.html', {'report_form': report_form})
+
+
+@login_required
+def join_game(request, sp_id=None):
     context = {}
     user = request.user
     try:
@@ -144,18 +141,21 @@ def join_game(request, sp_id):
             # NO space available
             return render(request, 'game/no_space.html')
 
-    state = {
-        'me': user.username,
-        'members_ready': room.members_ready,
-        'room_no': sp_id
-    }
+    state = room.get_state()
+    state['me'] = user.username
     context['games'] = Game.objects.all()
     context['selected_game'] = room.game
     context['members'] = members
     context['state'] = json.dumps(state)
     context['me'] = member
-
+    context['room'] = room
     return render(request, 'game/join_room.html', context)
+
+
+@login_required
+def join_room(request):
+    sp_id = request.POST.get('sp-id')
+    return redirect('join', sp_id=sp_id)
 
 
 @login_required

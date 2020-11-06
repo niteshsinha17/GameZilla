@@ -34,13 +34,15 @@
   filter: grayscale(1);
 }
 .g-card__img {
+  pointer-events: none;
   width: 250px;
   height: 160px;
   margin: auto;
   display: block;
 }
 
-.g-card__detail {
+.g-card__detail {  
+  pointer-events: none;
   display: flex;
   margin-top: 12px;
   padding: 0px 10px;
@@ -69,7 +71,7 @@
 
 .join_dropdown {
   position: fixed;
-  transition-duration: 1s;
+  transition-duration: 0.5s;
   bottom: -100%;
   width: 70%;
   background: white;
@@ -122,7 +124,7 @@
 }
 
 .join_dropdown__cross img {
-  width: 20px;
+  width: 15px;
 }
 
 .join_dropdown-active {

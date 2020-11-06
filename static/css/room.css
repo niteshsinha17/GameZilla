@@ -250,9 +250,8 @@
 }
 
 .detail__item .bold {
-  font-weight: 400;
+  font-weight: 700;
 }
-
 @media (min-width: 680px) {
   .detail__item {
     margin: 10px 0px;
@@ -309,12 +308,6 @@
 
 .games_dropdown .games::-webkit-resizer {
   height: 20px;
-}
-
-@media (min-width: 1024px) {
-  .games_dropdown .games {
-    flex-direction: column;
-  }
 }
 
 .games_dropdown__top {
@@ -454,21 +447,18 @@
   width: 60%;
   left: 20%;
   color: red;
+  font-weight: 700;
+  background: white;
   text-align: center;
-  font-size: 40px;
-  top: 2%;
-  animation: animate_msg 2s ease forwards;
+  font-size: 13px;
+  padding: 5px 0px;
+  top: 20%;
 }
-
-@keyframes animate_msg {
-  0% {
-    transform: translateY(200px);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(0px);
-    opacity: 0;
-  }
+.link_message {
+  position: absolute;
+  left: -100%;
+  z-index: -1;
+  bottom: 0px;
 }
 
 .online {

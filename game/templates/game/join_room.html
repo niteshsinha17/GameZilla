@@ -4,20 +4,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>GameZilla</title>
+    <link
+      rel="shortcut icon"
+      href="{% static 'icons/game.png' type='image/x-icon' %}"
+    />
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
     <link rel="stylesheet" href="{% static 'css/room.css' %}" />
     <link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
   </head>
   <body>
+    <div class="rotate">
+      <p>Please turn on screen rotation and use phone in landscape mode</p>
+    </div>
     <div class="room">
       <button
-        onclick="ready_state_handler(event)"
         class="room__start {% if me.ready %} {% else %} ready {% endif %} d-100"
       >
         Ready
       </button>
-      <button onclick="leave(event)" class="room__leave d-100">LEAVE</button>
+      <button class="room__leave d-100">LEAVE</button>
       <div
         style="background: url({{selected_game.img.url}});"
         class="room__bg"
@@ -26,13 +33,13 @@
       <div class="room__game_detail">
         <h2 class="room__heading">
           <img src="{% static 'icons/game.png' %}" alt="" />
-          {{selected_game.game_name}}
+          <span>{{selected_game.game_name}}</span>
         </h2>
         <span>
-          <button onclick="show_detail()" id="detail_icon">
+          <button id="detail_icon">
             <img src="{% static 'icons/home.png' %}" alt="" />
           </button>
-          <button id="setting" onclick="show_gd()">
+          <button id="setting">
             <img src="{% static 'icons/setting.png' %}" alt="" />
           </button>
         </span>
@@ -40,7 +47,7 @@
       <div class="container">
         <div class="row">
           <div class="room__detail">
-            <span onclick="hide_detail()" class="detail__cross"></span>
+            <span class="detail__cross d-100"></span>
             <h3 class="room__sub-heading">Room details</h3>
             <ul class="detail">
               <li class="detail__item">
@@ -50,23 +57,26 @@
                 Hosted By :
                 <span class="bold">{{room.created_by.username}}</span>
               </li>
-              <li class="detail__item">
-                Password : <span class="bold">{{room.password}}</span>
-              </li>
+
               <li class="detail__item">
                 Members Joined :
-                <span class="bold">{{room.joined_member}}</span>
+                <span class="bold">{{room.members_joined}}</span>
               </li>
               <li class="detail__item">
                 Max Players :
-                <span class="bold">{{room.game.max_players}}</span>
+                <span id="max_member" class="bold"
+                  >{{room.game.max_players}}</span
+                >
               </li>
               <li class="detail__item">
-                Min Players : <span class="bold">{{room.game.min_player}}</span>
+                Min Players :
+                <span id="min_member" class="bold"
+                  >{{room.game.min_player}}</span
+                >
               </li>
             </ul>
 
-            <button onclick="copy()" class="room__share">Invite Link</button>
+            <button class="room__share">Invite Link</button>
           </div>
 
           <div class="members">
@@ -95,7 +105,7 @@
       <div class="games_dropdown">
         <div class="games_dropdown__top">
           <h2 class="games_dropdown__heading">All Games</h2>
-          <span onclick="hide_gd()" class="games_dropdown__cross"></span>
+          <span class="games_dropdown__cross"></span>
         </div>
         <div class="games">
           {% for game in games %}
@@ -127,68 +137,95 @@
     <!-- ////////////////////////////////////////// -->
     <!-- ///////////////////////////////////////////// -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
+    <script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
     <script>
-      //   getting room detail from response
-      let state = null;
-      state = JSON.parse("{{state|escapejs}}");
+      "use strict";
+
+      //   getting state from response
+      var state = JSON.parse("{{state|escapejs}}");
       const ROOM_NO = state.room_no;
+
       const room = document.querySelector(".room__bg");
       const members = document.querySelector(".members__list");
+      function online(member, status) {
+        let id = "#r_" + member + " .online";
+        if (status) {
+          $(id).text("online");
+        } else {
+          $(id).text("offline");
+        }
+      }
+
+      function add_member(data) {
+        if (data.member === state.me) {
+          return;
+        }
+        $(".members__list").append(create_member(data));
+        if (data.ready) {
+          state.members_ready += 1;
+        }
+        state.members_joined += 1;
+        $("#members_joined").text(state.members_joined);
+      }
+
+      function create_member(data) {
+        let r = data.ready ? "ready" : "not ready";
+        return `<li id="r_${data.member}" class="members__item">
+                <div class="members_name">
+                  ${data.member}
+                  <span class="online">
+                    offline
+                  </span>
+                </div>
+                <div class="members__btns">
+                  <button id="s_${data.member}" class="members__ready">
+                   ${r}
+                  </button>
+                  <button onclick="remove(event,'${data.member}')"
+                          class="members__remove">
+                    Remove
+                    </button>
+                </div>
+            </li>`;
+      }
+
+      // websocket connection
+      var wsStart = "ws://";
+      if (window.location.protocol == "https:") {
+        wsStart = "wss://";
+      }
+      var endpoint = wsStart + window.location.host + /room/ + ROOM_NO + "/";
+      const socket = new ReconnectingWebSocket(endpoint);
+
       // socket initiallisation
-      const socket = new WebSocket(
-        "ws://" + window.location.host + "/ws/room/" + ROOM_NO + "/"
-      );
-
-      // ///////////////////
-      //  games dropdown
-      // //////////////////
-      const setting = document.querySelector("#setting");
-      const g_d = document.querySelector(".games_dropdown");
-      const show_gd = () => {
-        $(setting).addClass("setting_active");
-        $(g_d).addClass("games_dropdown-active");
-      };
-
-      const hide_gd = () => {
-        $(setting).removeClass("setting_active");
-        $(g_d).removeClass("games_dropdown-active");
-      };
-
-      // socket functions
-      // Action types
-      const add_member_ = "add_member";
-      const member_removed_ = "member_removed";
-      const started_ = "started";
-      const ready_ = "ready";
-      const game_changed_ = "game_changed";
-      const leaved_ = "leaved";
-      const online_ = "online";
-      // socket functions
       socket.onmessage = function (e) {
-        data = JSON.parse(e.data);
-        console.log(data["action"]);
+        let data = JSON.parse(e.data);
         switch (data["action"]) {
-          case add_member_:
+          case "add_member":
             add_member(data);
             break;
-          case member_removed_:
+
+          case "member_removed":
             remove_member(data);
             break;
-          case started_:
+
+          case "started":
             started(data);
             break;
-          case ready_:
+
+          case "ready":
             ready(data);
             break;
-          case game_changed_:
+
+          case "game_changed":
             game_changed(data);
             break;
-          case online_:
+
+          case "online":
             online(data["member"], data["status"]);
             break;
 
-          case leaved_:
+          case "leaved":
             leaved(data);
             break;
 
@@ -197,162 +234,11 @@
         }
       };
 
-      socket.onclose = function (e) {
-        console.log("onclose", e);
-      };
-      socket.onerror = function (e) {
-        console.log("onerror", e);
-      };
-      socket.onopen = function (e) {
-        console.log("onopen", e);
-      };
-
-      // ////////////////////////////
-      //   Recieving functions
-      // ////////////////////////////
-
-      //  Game started
-      const started = (data) => {
-        if (data["can_start"]) {
-          window.location.href = data["url"];
-        }
-      };
-
-      const leaved = (data) => {
-        if (data["member"] === state.me || data["member"] === "all") {
-          window.location.href = "/";
-        }
-        remove_member(data);
-      };
-
-      // online status
-      const online = (member, status) => {
-        let id = "#r_" + member + " .online";
-        if (status) {
-          document.querySelector(id).innerText = "online";
-        } else {
-          document.querySelector(id).innerText = "offline";
-        }
-      };
-
-      // add_member
-      const add_member = (data) => {
-        if (data["member"] === state.me) {
-          return;
-        }
-        $(members).append(create_member(data));
-        // online_status(data["member"], true);
-      };
-
-      const create_member = (data) => {
-        let r = data["ready"] ? "ready" : "not ready";
-
-        return `<li id="r_${data["member"]}" class="members__item">
-                <div class="members_name">
-                  ${data["member"]}
-                  <span class="online">
-                    offline 
-                  </span>
-                </div>
-                <div class="members__btns">
-                  <button id="s_${data["member"]}" class="members__ready">
-                   ${r}
-                  </button>
-                </div>
-              </li>
-          `;
-      };
-      // online status
-      const online_status = (member, state) => {
-        if (status) {
-          document.querySelector("r_" + member + " .online").innerText = online;
-        } else {
-          document.querySelector(
-            "r_" + member + " .online"
-          ).innerText = offline;
-        }
-      };
-      // Remove member
-      const remove_member = (data) => {
-        if (data["member"] == state.me) {
-          return (window.location.href = "/");
-        }
-        $("#r_" + data["member"]).remove();
-        if (data["was_ready"]) {
-          state.members_ready -= 1;
-        }
-        state.members_removed -= 1;
-      };
-
-      // show_ready
-      const ready = (data) => {
-        if (data["state"]) {
-          document.getElementById("s_" + data["member"]).innerHTML = "READY";
-        } else {
-          document.getElementById("s_" + data["member"]).innerHTML =
-            "NOT READY";
-        }
-        if (state.me == data["member"]) {
-          if (data["state"]) {
-            $(".room__start").removeClass("ready");
-          } else {
-            $(".room__start").addClass("ready");
-          }
-        }
-      };
-
-      // ////////////////
-      //  room detail
-      // ///////////////
-
-      const room_detail = document.querySelector(".room__detail");
-
-      const show_detail = () => {
-        $(room_detail).addClass("show_detail");
-      };
-
-      const hide_detail = () => {
-        $(room_detail).removeClass("show_detail");
-      };
-
-      const animate_btn = (btn) => {
-        $(btn).addClass("animate_btn");
-        setTimeout(() => {
-          $(btn).removeClass("animate_btn");
-        }, 100);
-      };
-
-      // game changed
-      const game_changed = (data) => {
-        if (!data["changed"]) {
-          return;
-        }
-
-        room.style.background = "url(" + data["url"] + ")";
-        document.querySelector(".room__heading").innerText =
-          data["name"] + "(" + data["max_player"] + ")";
-
-        $(document.getElementById(room["old_code"])).removeClass("selected");
-        $(document.getElementById(room["code"])).addClass("selected");
-      };
-
-      // ///////////////////////////
-      //   Sending Functions
-      // //////////////////////////
-
-      // leave
-      const leave = (event) => {
-        animate_btn(event.target);
-        socket.send(JSON.stringify({ action: "leave" }));
-      };
-      // ready
-      const ready_state_handler = (event) => {
-        animate_btn(event.target);
-        let msg = {
-          action: "change_ready",
-        };
-        socket.send(JSON.stringify(msg));
-      };
+      socket.onclose = function (e) {};
+      socket.onerror = function (e) {};
+      socket.onopen = function (e) {};
     </script>
+    <script src="{% static 'js/resize.js' %}"></script>
+    <script src="{% static 'js/join.js' %}"></script>
   </body>
 </html>

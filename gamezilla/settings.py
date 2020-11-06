@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'account',
     'game',
     'snakeAndLadder',
-    'channels'
+    'channels',
+    'ticTacToe'
 ]
 
 MIDDLEWARE = [

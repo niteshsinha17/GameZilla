@@ -7,14 +7,22 @@
     <link rel="stylesheet" href="{% static 'css/snl.css' %}" />
     <link rel="stylesheet" href="{% static 'css/main.css' %}" />
     <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
-    <title>Document</title>
+
+    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
+    <link
+      rel="shortcut icon"
+      href="{% static 'icons/game.png' type='image/x-icon' %}"
+    />
+    <title>GameZilla</title>
   </head>
-  <style>
-    .disable {
-      filter: grayscale(1);
-    }
-  </style>
   <body style="overflow: hidden">
+    <div class="rotate">
+      <p>Please turn on screen rotation and use phone in landscape mode</p>
+    </div>
+    <div class="spiner">
+      <div class="loader"></div>
+      <div class="loading_msg">Tryig to Connect.. Please wait</div>
+    </div>
     <div class="chat">
       <div class="chat__messages">
         {% for message in messages %}
@@ -77,9 +85,7 @@
               class="player {% if player.leaved %} disable {% endif %}"
             >
               {% if player.rank > 0 %}
-              <div class="player__rank">
-                <img src="{% static 'icons/First.png' %}" alt="" />
-              </div>
+              <div class="player__rank">{{player.rank}}</div>
               {% endif %}
 
               <div class="player__name {{player.color}}">
@@ -139,7 +145,11 @@
               </button>
             </li>
             <li class="settings__item">
-              <button onclick="play(event)" id="play" class="settings__btn">
+              <button
+                onclick="play(event)"
+                id="play"
+                class="settings__btn {% if player.rank > 0 %} disable{% endif %}"
+              >
                 <img class="d-100" src="{% static 'icons/play.png' %}" alt="" />
               </button>
             </li>
@@ -173,10 +183,16 @@
       </div>
     </div>
     <div class="winners">
-      <div class="winners__wrapper"></div>
-      <div class="winners__btns">
-        <a href="" class="winners__room">Go back to room</a>
-        <a href="" class="winners__exit">Exit</a>
+      <div class="winner_animate_div">
+        <div class="winner__heading">Game Over</div>
+        <div class="winners__wrapper"></div>
+        <div class="winners__btns">
+          <a href="" class="winners__room"
+            >Go back to room (<span class="winners__time"></span>)
+          </a>
+          <a href="" class="winners__exit">Exit</a>
+        </div>
+        <div class="winners__leaved">Leaved the Game</div>
       </div>
     </div>
 
@@ -234,236 +250,63 @@
       type="audio/mpeg"
     ></audio>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
+    <script src="{% static 'js/snl.js' %}"></script>
+    <script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
     <script>
-      // INITIAL SETUP
-      var music_stoped = true;
-      var sound_stoped = true;
-      const current_player = document.querySelector(".current_player");
-      const timer = document.querySelector(".timer");
-      const dice = document.querySelector(".SNL__dice");
-      const music = document.getElementById("snl_music");
-      // getting state and players json from response
-      players = JSON.parse("{{players_json|escapejs}}");
-      me = JSON.parse("{{me|escapejs}}")["me"];
-      var sent = false;
-      var chat_open = false;
-      // /////////////////
-      //  any sound intrupt
-      // /////////////////////
+      // constants
+      const players = JSON.parse("{{players_json|escapejs}}");
+      const me = JSON.parse("{{me|escapejs}}")["me"];
 
-      const sound_intrupt = (sound) => {
-        if (sound_stoped) {
-          return;
-        }
-        if (!music_stoped) {
-          music.voloum = 0.01;
-        }
-        s = document.getElementById(sound);
-        s.play();
-        setTimeout(() => {
-          if (!music_stoped) {
-            music.voloum = 1;
-          }
-        });
-      };
-
-      // // defaults
-      // const defaultChange = 60;
-      // const defaultLeft = 10;
-      // const defaultBottom = 10;
-      // defaults
-      const defaultChange = 30;
-      const defaultLeft = 5;
-      const defaultBottom = 5;
-
-      // socket initialization
-      const ROOM_NO = JSON.parse("{{room_id|escapejs}}")["room_id"];
-      const socket = new WebSocket(
-        "ws://" + window.location.host + "/ws/SNL/" + ROOM_NO + "/"
-      );
-
-      // Actions
-      const player_changed_ = "player_changed";
-      const open_ = "open";
-      const move_ = "move";
-      const double_move_ = "double_move";
-      const started_ = "started";
-      const set_state_ = "set_state";
-      const cant_move_ = "cant_move";
-      const agian_entered_ = "again_entered";
-      const game_over_ = "game_over";
-      const online_ = "online";
-      const error_ = "error";
-      const message_ = "message";
-      const leaved_ = "leaved";
-      const player_not_joined_ = "player_not_joined";
       // timer variables
       var opened, timer_, stop_timer_, no_respose_timer, change_player_timer;
-      var unread = 0;
-      var t = 12;
-      // socket functions
-      socket.onmessage = function (e) {
-        const data = JSON.parse(e["data"]);
-        if (
-          (data["action"] != message_ && data["action"] != online_) ||
-          (data["action"] != leaved_ && data["start"] == false)
-        ) {
-          clearTimeout(no_respose_timer);
-          clear_timer();
-        }
 
-        console.log(data["action"]);
-        switch (data["action"]) {
-          case move_:
-            show_dice(data["number"]);
-            move(data, data["position"]);
-            started(data);
-            if (data["win"]) {
-              win(data);
-            }
-            break;
-          case double_move_:
-            show_dice(data["number"]);
-            double_move(data);
-            started(data);
-            break;
+      // websocket settings
+      const ROOM_NO = JSON.parse("{{room_id|escapejs}}")["room_id"];
+      // websocket connection
+      var wsStart = "ws://";
+      if (window.location.protocol == "https:") {
+        wsStart = "wss://";
+      }
+      var endpoint = wsStart + window.location.host + /SNL/ + ROOM_NO + "/";
+      const socket = new ReconnectingWebSocket(endpoint);
 
-          case player_changed_:
-            started(data);
-            break;
-
-          case open_:
-            show_dice(data["number"]);
-            open_player(data);
-            break;
-          case started_:
-            started(data);
-            break;
-          case game_over_:
-            show_dice(data["number"]);
-            setTimeout(game_over(data), 3000);
-
-            break;
-          case leaved_:
-            leaved(data);
-            break;
-
-          case set_state_:
-            if (data["error"]) {
-              started(data);
-            }
-            break;
-          case agian_entered_:
-            // again_entered(data);
-            initialization();
-            started(data);
-            break;
-          case cant_move_:
-            cant_move(data);
-            break;
-          case error_:
-            notification(data["error_msg"]);
-            break;
-          case player_not_joined_:
-            player_not_joined();
-            break;
-          case message_:
-            message(data);
-            break;
-          case online_:
-            online(data);
-            break;
-
-          default:
-            break;
-        }
-      };
-      socket.onclose = function (e) {
-        console.log("onclose", e);
-      };
-      socket.onerror = function (e) {
-        console.log("onerror", e);
-      };
-      socket.onopen = function (e) {
-        console.log("onopen", e);
-      };
-
-      const online = (data) => {
-        if (data["status"]) {
-          $("#s_" + data["player"]).html("online");
+      function online(data) {
+        if (data.status) {
+          $("#s_" + data.player).html("online");
         } else {
-          $("#s_" + data["player"]).html("offline");
+          $("#s_" + data.player).html("offline");
         }
-      };
+      }
+      function clearTimer() {
+        if (timer_) {
+          clearInterval(timer_);
+        }
 
-      const game_over = (data) => {
-        if (data["win"]) {
-          move(data, data["position"]);
+        if (stop_timer_) {
+          clearTimeout(stop_timer_);
         }
-        if (!sound_stoped) {
-          sound_intrupt("sound_win");
-        }
-        show_winners(data["winners"]);
-        setTimeout(() => {
-          if (data["host"] === me) {
-            window.location.href = "/room/" + data["url"];
-          } else {
-            window.location.href = "/join/" + data["url"];
-          }
-        }, 10000);
-      };
-      const leaved = (data) => {
-        if (data["leaved_by"] === me) {
-          return (window.location.href = "/");
-        }
-        $(`#p_${data["leaved_by"]}`).addClass("disable");
-        $(`#l_${data["leaved_by"]}`).addClass("disable");
-        notification(`game leaved by ${data["leaved_by"]}`);
-        if (data["start"]) {
-          started(data);
-        }
-      };
-      const message = (data) => {
-        other = data["sender"] === me ? "" : "other";
-        $(".chat__messages").append(`<div class="chat__message ${other} ">
-          <h5 class="chat__sender">${data["sender"]}</h5>
-          <p class="chat__msg ${other}">
-          ${data["msg"]}
-          </p>
-        </div>`);
+      }
 
-        if (data["sender"] != me && !chat_open) {
-          unread++;
-          $(".unread").html(unread);
-          if (unread === 1) {
-            $(".unread").addClass("show_unread");
-          }
-        }
-        scroll_bottom();
-        if (data["sender"] !== me) {
-          sound_intrupt("sound_msg");
-        }
-      };
-      const player_not_joined = () => {
-        console.log("player not joined");
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 2000);
-      };
-
-      const initialization = () => {
+      function initialization() {
         players.forEach((player) => {
-          if (player["position"] == 1) {
+          if (player.position === 1) {
+            if (player.can_move) {
+              set_position(player.name, 0, 0);
+              $("#p_" + player.name).animate({
+                opacity: 1,
+                width: defaultWidth + "px",
+                height: defaultWidth + "px",
+              });
+            }
             return;
           }
-          p = player["position"];
-          player_ = player["name"];
+          p = player.position;
+          player_ = player.name;
 
-          $("#p_" + player["name"]).animate({
+          $("#p_" + player.name).animate({
             opacity: 1,
-            width: default_width + "px",
-            height: default_width + "px",
+            width: defaultWidth + "px",
+            height: defaultWidth + "px",
           });
 
           if (p <= 10) {
@@ -487,331 +330,123 @@
             }
           }
         });
-      };
-
-      const show_winners = (winners) => {
-        data = "";
-        winners.forEach((winner) => {
-          data += get_winner(winner);
-        });
-        $(".winners__wrapper").html(data);
-        $(".winners").addClass("show_winners");
-        $(".winners").animate({ height: "80%", top: "10%" }, 1000, () => {
-          $(".winners__wrapper").addClass("show_winners_wrapper");
-          $(".winners__btns").addClass("show_winners_wrapper");
-        });
-      };
-
-      const send = () => {
-        msg = $("#message").val();
-        console.log(msg);
-        if (msg.length > 0) {
-          $("#message").val("");
-          socket.send(
-            JSON.stringify({
-              action: "message",
-              message: msg,
-            })
-          );
-        }
-      };
-
-      $("#message").on("keyup", (event) => {
-        if (event.keyCode === 13) {
-          msg = $("#message").val();
-          console.log(msg);
-          if (msg.length > 0) {
-            $("#message").val("");
-            socket.send(
-              JSON.stringify({
-                action: "message",
-                message: msg,
-              })
-            );
-          }
-        }
-      });
-
-      const get_winner = (winner) => {
-        rank = winner.rank != null ? winner.rank : "";
-        return `<div class="winner">
-            <div class="winners__img">
-           ${rank}
-            </div>
-            <div class="winners__name">
-              ${winner.name}
-            </div>
-          </div>`;
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 5000);
-      };
-
-      const leave = () => {
-        socket.send(
-          JSON.stringify({
-            action: "leave",
-          })
-        );
-      };
-      const show_dice = (no) => {
-        $(dice).html(no);
-      };
-      const cant_move = (data) => {
-        show_dice(data["number"]);
-        if (data["error_msg"]) {
-          notification(data["error_msg"]);
-        }
-        started(data);
-      };
-
-      const start_timer = () => {
-        t = state.time;
-        stop_timer_ = setTimeout(() => {
-          clearInterval(timer_);
-        }, t * 1000);
-        timer_ = setInterval(() => {
-          t--;
-          timer.innerText = t;
-        }, 1000);
-      };
-
-      const clear_timer = () => {
-        if (timer_) {
-          clearInterval(timer_);
-        }
-
-        if (stop_timer_) {
-          clearTimeout(stop_timer_);
-        }
-      };
-
-      const show_state = () => {
-        // it will show and state everytime
-        current_player.innerText = state.current_player;
-      };
-
-      // win
-
-      const win = (data) => {
-        // add image to winner
-        if (data["winner"] === me) {
-          return show_winning_box();
-        }
-      };
-      const show_winning_box = () => {
-        console.log("winner me");
-      };
-      const again_entered = (data) => {
-        initialization();
-        state = data["state"];
-        show_state();
-        timer.innerText = "getting time";
-        if (state.current_player == me) {
-          sent = false;
-          change_player_timer = setTimeout(() => {
-            sent = true;
-            change_player();
-          }, state.time * 1000);
-        } else {
-          no_respose_timer = setTimeout(() => {
-            socket.send(
-              JSON.stringify({ action: "check_state", old_state: state })
-            );
-          }, state.time * 1000 + 4000);
-        }
-      };
-
-      // change player
-      // its runs when game is started
-      const started = (data) => {
-        state = data["state"];
-        show_state();
-        start_timer();
-        if (state.current_player == me) {
-          sent = false;
-          change_player_timer = setTimeout(() => {
-            sent = true;
-            change_player();
-          }, state.time * 1000);
-
-          setTimeout(() => {
-            play();
-          }, 2000);
-        } else {
-          no_respose_timer = setTimeout(() => {
-            socket.send(
-              JSON.stringify({ action: "check_state", old_state: state })
-            );
-          }, 16000);
-        }
-      };
-
-      const play = () => {
-        // animate_btn(event.target);
-        if (!sent && state.current_player === me) {
-          clear_timer();
-          clearTimeout(change_player_timer);
-          sent = false;
-          socket.send(JSON.stringify({ action: "play" }));
-        } else {
-          notification("wait for your turn");
-          sound_intrupt("sound_notification");
-        }
-      };
-
-      const move = (data, position) => {
-        // show_dice()
-        p = position;
-        player = data["player"];
-
-        if (p <= 10) {
-          set_position(player, p - 1, 0);
-        } else {
-          b = Math.floor(p / 10);
-          reminder = p % 10;
-          if (reminder === 0) {
-            b--;
-          }
-          if (b % 2 === 0) {
-            if (reminder === 0) {
-              reminder = 10;
-            }
-            set_position(player, reminder - 1, b);
-          } else {
-            if (reminder === 0) {
-              reminder = 10;
-            }
-            set_position(player, 10 - reminder, b);
-          }
-        }
-      };
-
-      const double_move = (data) => {
-        move(data, data["position"]);
-        setTimeout(() => {
-          // sound(data)
-          move(data, data["bridge_end"]);
-          if (data["bridge"] === "SNAKE") {
-            sound_intrupt("sound_snake");
-          } else {
-            sound_intrupt("sound_ladder");
-          }
-        }, 500);
-      };
-      const set_position = (player, x, y) => {
+      }
+      function set_position(player, x, y) {
         let p = document.querySelector("#p_" + player);
         p.style.left = `${x * defaultChange + defaultLeft}px`;
         p.style.bottom = `${y * defaultChange + defaultBottom}px`;
-      };
-      const change_player = () => {
-        socket.send(JSON.stringify({ action: "change_player" }));
-      };
+      }
 
-      // functions
-      var default_width = 20;
+      socket.onmessage = function (e) {
+        if ($(".spiner").length) {
+          // remove spinner
+          $(".spiner").remove();
+        }
+        const data = JSON.parse(e["data"]);
+        if (
+          (data["action"] != "message" && data["action"] != "online") ||
+          (data["action"] != "leaved" && data["start"] == false)
+        ) {
+          clearTimeout(no_respose_timer);
+          clearTimer();
+        }
+        console.log(data["action"]);
+        switch (data["action"]) {
+          case "move":
+            showDice(data["number"]);
+            move(data, data["position"]);
+            started(data);
+            if (data["win"]) {
+              win(data);
+            }
+            break;
 
-      const open_player = (data) => {
-        sound_intrupt("sound_open");
-        $("#p_" + data["player"]).animate({
-          opacity: 1,
-          left: defaultLeft + "px",
-          bottom: defaultBottom + "px",
-          width: default_width + "px",
-          height: default_width + "px",
-        });
-        started(data);
-      };
+          case "double_move":
+            showDice(data["number"]);
+            double_move(data);
+            started(data);
+            break;
 
-      // ////////////////////////
-      //       handlers        //
-      // ////////////////////////
+          case "player_changed":
+            started(data);
+            break;
 
-      const handle_sound = (event) => {
-        animate_btn(event.target);
-        sound_stoped = !sound_stoped;
-        if (sound_stoped) {
-          $(document.getElementById("sound")).removeClass("on");
-        } else {
-          $(document.getElementById("sound")).addClass("on");
+          case "open":
+            showDice(data["number"]);
+            open_player(data);
+            break;
+
+          case "started":
+            started(data);
+            break;
+
+          case "game_over":
+            showDice(data["number"]);
+            setTimeout(game_over(data), 3000);
+
+            break;
+          case "leaved":
+            leaved(data);
+            break;
+
+          case "set_state":
+            if (data["error"]) {
+              started(data);
+            }
+            break;
+
+          case "again_entered":
+            initialization();
+            started(data);
+            break;
+
+          case "cant_move":
+            cant_move(data);
+            break;
+
+          case "error":
+            notification(data["error_msg"]);
+            break;
+
+          case "player_not_joined":
+            player_not_joined();
+            break;
+
+          case "message":
+            message(data);
+            break;
+
+          case "online":
+            online(data);
+            break;
+
+          default:
+            break;
         }
       };
-      const handle_music = (event) => {
-        animate_btn(event.target);
-        if (music_stoped) {
-          music.play();
-          $(document.getElementById("music")).addClass("on");
-        } else {
-          music.pause();
-          $(document.getElementById("music")).removeClass("on");
-        }
-        music_stoped = !music_stoped;
+      function showStarting() {
+        $(".loading_msg").html(
+          "Connected, Starting in <span class='loading_time'>15</span> secs.."
+        );
+        let t = 15;
+        let loading_interval = setInterval(function () {
+          if (t < 1) {
+            clearInterval(loading_interval);
+          } else {
+            t--;
+            $(".loading_time").text(t);
+          }
+        }, 1000);
+      }
+      socket.onclose = function (e) {
+        console.log("onclose", e);
       };
-
-      // const handle_exit = (event) => {
-      //   $(join_dropwown).addClass("join_dropdown-active");
-      //   animate_btn(event.target);
-      //   sound_intrupt("sound_notification");
-      // };
-
-      const exit = document.querySelector(".exit");
-
-      const handle_exit = (event) => {
-        $(exit).addClass("show_exit");
-        sound_intrupt("sound_notification");
-        animate_btn(event.target);
+      socket.onerror = function (e) {
+        console.log("onerror", e);
       };
-      document.querySelector(".stay").addEventListener("click", () => {
-        $(exit).removeClass("show_exit");
-      });
-
-      const handle_chat = (event) => {
-        chat_open = !chat_open;
-        if (chat_open) {
-          read_message();
-        }
-
-        $(document.querySelector(".chat")).toggleClass("show_chat");
-        animate_btn(event.target);
-      };
-
-      // scroll message to bottom
-      const scroll_bottom = () => {
-        msg = document.querySelector(".chat__messages");
-
-        msg.scrollTop = msg.scrollHeight;
-      };
-
-      const read_message = () => {
-        if (unread > 0) {
-          $(".unread").removeClass("show_unread");
-          unread = 0;
-        }
-      };
-
-      const animate_btn = (btn) => {
-        console.log("animate");
-        $(btn).addClass("animate_btn");
-        setTimeout(() => {
-          $(btn).removeClass("animate_btn");
-        }, 100);
-      };
-
-      const notification = (msg) => {
-        let l = document.querySelectorAll(".notification").length;
-        $(".SNL__notification").append(get_notification_object(l, msg));
-        setTimeout(() => {
-          $(document.querySelector(`#n_${l}`)).remove();
-        }, 3000);
-      };
-      scroll_bottom();
-      const get_notification_object = (l, msg) => {
-        return `<li class="notification" id="n_${l}">
-          <button class="notification__btn">
-            <img class="notification__bell" src="/static/icons/bell.png" alt="" />
-          </button>
-          <div class="notification__msg">${msg}</div>
-        </li>`;
+      socket.onopen = function (e) {
+        console.log("onopen", e);
+        showStarting();
       };
     </script>
   </body>

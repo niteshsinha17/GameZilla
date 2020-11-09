@@ -1,11 +1,11 @@
-/* jshint browser: true */ 
+/* jshint browser: true */
 /*jshint esversion: 6 */
 
 // variables for game cards
 const gameWrapper = document.querySelector(".games");
 const games = document.querySelectorAll(".g-card");
 var old_size;
-function resizeOnLoad($){
+function resizeOnLoad($) {
   // runs whwn window is loaded
   games.forEach((element) => {
     $(element).hide();
@@ -21,7 +21,7 @@ function resizeOnLoad($){
   old_size = width;
 }
 
-function initOnResize($){
+function initOnResize($) {
   // change games view on resize
   $(window).on("resize", () => {
     let width = window.innerWidth;
@@ -41,7 +41,7 @@ function initOnResize($){
 }
 
 
-function arrageGames(n){
+function arrageGames(n) {
   document.querySelectorAll(".row").forEach((element) => {
     element.remove();
   });

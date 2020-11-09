@@ -1,222 +1,205 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gamezilla</title>
-    <link
-      rel="shortcut icon"
-      href="{% static 'icons/game.png' type='image/x-icon' %}"
-    />
-    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/room.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
-  </head>
-  <body style="position: relative">
-    <div class="rotate">
-      <p>Please turn on screen rotation and use phone in landscape mode</p>
-    </div>
-    <div class="spiner">
-      <div class="loader"></div>
-    </div>
-    <div class="room">
-      <button class="room__start d-100">Start</button>
-      <button class="room__leave d-100">LEAVE</button>
-      <div
-        style="background: url({{selected_game.img.url}});"
-        class="room__bg"
-      ></div>
+{% load static %}{% include "base.html" %} {% block links %}
+<link rel="stylesheet" href="{% static 'css/main.css' %}" />
+<link rel="stylesheet" href="{% static 'css/room.css' %}" />
+<link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
 
-      <div class="room__game_detail">
-        <h2 class="room__heading">
-          <img src="{% static 'icons/game.png' %}" alt="" />
-          <span>{{selected_game.game_name}}</span>
-        </h2>
-        <span>
-          <button id="detail_icon">
-            <img src="{% static 'icons/home.png' %}" alt="" />
-          </button>
-          <button id="setting">
-            <img src="{% static 'icons/setting.png' %}" alt="" />
-          </button>
-        </span>
+{% endblock links %} {% block body %}
+<div class="rotate">
+  <p>Please turn on screen rotation and use phone in landscape mode</p>
+</div>
+<div class="spiner">
+  <div class="loader"></div>
+</div>
+<div class="room">
+  <button class="room__start d-100">Start</button>
+  <button class="room__leave d-100">LEAVE</button>
+  <div
+    style="background: url({{selected_game.img.url}});"
+    class="room__bg"
+  ></div>
+
+  <div class="room__game_detail">
+    <h2 class="room__heading">
+      <img src="{% static 'icons/game.png' %}" alt="" />
+      <span>{{selected_game.game_name}}</span>
+    </h2>
+    <span>
+      <button id="detail_icon">
+        <img src="{% static 'icons/home.png' %}" alt="" />
+      </button>
+      <button id="setting">
+        <img src="{% static 'icons/setting.png' %}" alt="" />
+      </button>
+    </span>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="room__detail">
+        <span class="detail__cross"></span>
+        <h3 class="room__sub-heading">Room details</h3>
+        <ul class="detail">
+          <li class="detail__item">
+            Game Id : <span class="bold">{{room.sp_id}}</span>
+          </li>
+          <li class="detail__item">
+            Hosted By :
+            <span class="bold">{{room.created_by.username}}</span>
+          </li>
+          <li class="detail__item">
+            Members Joined :
+            <span id="members_joined" class="bold"
+              >{{room.members_joined}}</span
+            >
+          </li>
+          <li class="detail__item">
+            Max Players :
+            <span id="max_member" class="bold">{{room.game.max_player}}</span>
+          </li>
+          <li class="detail__item">
+            Min Players :
+            <span id="min_member" class="bold">{{room.game.min_player}}</span>
+          </li>
+        </ul>
+        <button class="room__share">Invite Link</button>
       </div>
 
-      <div class="container">
-        <div class="row">
-          <div class="room__detail">
-            <span class="detail__cross"></span>
-            <h3 class="room__sub-heading">Room details</h3>
-            <ul class="detail">
-              <li class="detail__item">
-                Game Id : <span class="bold">{{room.sp_id}}</span>
-              </li>
-              <li class="detail__item">
-                Hosted By :
-                <span class="bold">{{room.created_by.username}}</span>
-              </li>
-              <li class="detail__item">
-                Members Joined :
-                <span id="members_joined" class="bold"
-                  >{{room.members_joined}}</span
-                >
-              </li>
-              <li class="detail__item">
-                Max Players :
-                <span id="max_member" class="bold"
-                  >{{room.game.max_player}}</span
-                >
-              </li>
-              <li class="detail__item">
-                Min Players :
-                <span id="min_member" class="bold"
-                  >{{room.game.min_player}}</span
-                >
-              </li>
-            </ul>
-            <button class="room__share">Invite Link</button>
-          </div>
-
-          <div class="members">
-            <h3 class="members__heading">Players Joined</h3>
-            <ul class="members__list">
-              {% for member in members %}
-              <li id="r_{{member}}" class="members__item">
-                <div class="members_name">
-                  {{member}}
-                  <span class="online">
-                    {% if member.online %} online {% else %} offline {% endif %}
-                  </span>
-                </div>
-                <div class="members__btns">
-                  <button id="s_{{member}}" class="members__ready">
-                    {% if member.ready %} READY {% else%} NOT READY {% endif %}
-                  </button>
-                  {% if member.host%} {% else %}
-                  <button
-                    onclick="remove(event,'{{member}}')"
-                    class="members__remove"
-                  >
-                    Remove
-                  </button>
-                  {% endif %}
-                </div>
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="games_dropdown">
-        <div class="games_dropdown__top">
-          <h2 class="games_dropdown__heading">Change Game</h2>
-          <span class="games_dropdown__cross d-100"></span>
-        </div>
-        <div class="games">
-          {% for game in games %}
-          <a
-            id="{{game.code}}"
-            class="g-card {% if game.code == selected_game.code %} selected {% endif %}"
-          >
-            <img
-              id="img_{{game.code}}"
-              class="g-card__img"
-              src="{{game.img.url}}"
-              alt=""
-            />
-            <div class="g-card__detail">
-              <div class="g-card__name">
-                <img src="{% static 'icons/game.png' %}" alt="" />
-                <h4 class="g-card__name">{{game.game_name}}</h4>
-              </div>
-              <div class="g-card__players">
-                {{game.min_player}}-{{game.max_player}}
-              </div>
+      <div class="members">
+        <h3 class="members__heading">Players Joined</h3>
+        <ul class="members__list">
+          {% for member in members %}
+          <li id="r_{{member}}" class="members__item">
+            <div class="members_name">
+              {{member}}
+              <span class="online">
+                {% if member.online %} online {% else %} offline {% endif %}
+              </span>
             </div>
-          </a>
-
+            <div class="members__btns">
+              <button id="s_{{member}}" class="members__ready">
+                {% if member.ready %} READY {% else%} NOT READY {% endif %}
+              </button>
+              {% if member.host%} {% else %}
+              <button
+                onclick="remove(event,'{{member}}')"
+                class="members__remove"
+              >
+                Remove
+              </button>
+              {% endif %}
+            </div>
+          </li>
           {% endfor %}
-        </div>
+        </ul>
       </div>
     </div>
-    <!-- //////////////////////////////// -->
-    <!-- //////////////////////////////// -->
+  </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
-    <script>
-      "use strict";
-      //   getting state from response
-      var state = JSON.parse("{{state|escapejs}}");
-      const ROOM_NO = state.room_no;
+  <div class="games_dropdown">
+    <div class="games_dropdown__top">
+      <h2 class="games_dropdown__heading">Change Game</h2>
+      <span class="games_dropdown__cross d-100"></span>
+    </div>
+    <div class="games">
+      {% for game in games %}
+      <a
+        id="{{game.code}}"
+        class="g-card {% if game.code == selected_game.code %} selected {% endif %}"
+      >
+        <img
+          id="img_{{game.code}}"
+          class="g-card__img"
+          src="{{game.img.url}}"
+          alt=""
+        />
+        <div class="g-card__detail">
+          <div class="g-card__name">
+            <img src="{% static 'icons/game.png' %}" alt="" />
+            <h4 class="g-card__name">{{game.game_name}}</h4>
+          </div>
+          <div class="g-card__players">
+            {{game.min_player}}-{{game.max_player}}
+          </div>
+        </div>
+      </a>
 
-      function online(member, status) {
-        let id = "#r_" + member + " .online";
-        if (status) {
-          $(id).text("online");
-        } else {
-          $(id).text("offline");
-        }
-      }
-      // websocket connection
-      var wsStart = "ws://";
-      if (window.location.protocol == "https:") {
-        wsStart = "wss://";
-      }
-      var endpoint = wsStart + window.location.host + /room/ + ROOM_NO + "/";
-      const socket = new ReconnectingWebSocket(endpoint);
+      {% endfor %}
+    </div>
+  </div>
+</div>
 
-      socket.onmessage = function (e) {
-        var data = JSON.parse(e.data);
-        switch (data["action"]) {
-          case "add_member":
-            add_member(data);
-            break;
+{% endblock body %} {% block scripts %}
 
-          case "member_removed":
-            remove_member(data);
-            break;
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
+<script>
+  "use strict";
+  //   getting state from response
+  var state = JSON.parse("{{state|escapejs}}");
+  const ROOM_NO = state.room_no;
 
-          case "started":
-            started(data);
-            break;
+  function online(member, status) {
+    let id = "#r_" + member + " .online";
+    if (status) {
+      $(id).text("online");
+    } else {
+      $(id).text("offline");
+    }
+  }
+  // websocket connection
+  var wsStart = "ws://";
+  if (window.location.protocol == "https:") {
+    wsStart = "wss://";
+  }
+  var endpoint = wsStart + window.location.host + /room/ + ROOM_NO + "/";
+  const socket = new ReconnectingWebSocket(endpoint);
 
-          case "ready":
-            ready(data);
-            break;
+  socket.onmessage = function (e) {
+    var data = JSON.parse(e.data);
+    switch (data["action"]) {
+      case "add_member":
+        add_member(data);
+        break;
 
-          case "game_changed":
-            game_changed(data);
-            break;
+      case "member_removed":
+        remove_member(data);
+        break;
 
-          case "online":
-            online(data["member"], data["status"]);
-            break;
+      case "started":
+        started(data);
+        break;
 
-          case "leaved":
-            leaved(data);
-            break;
+      case "ready":
+        ready(data);
+        break;
 
-          default:
-            break;
-        }
-      };
+      case "game_changed":
+        game_changed(data);
+        break;
 
-      socket.onclose = function (e) {};
+      case "online":
+        online(data["member"], data["status"]);
+        break;
 
-      socket.onerror = function (e) {};
+      case "leaved":
+        leaved(data);
+        break;
 
-      socket.onopen = function (e) {};
-    </script>
+      default:
+        break;
+    }
+  };
 
-    <script src="{% static 'js/resize.js' %}"></script>
-    <script src="{% static 'js/host.js' %}"></script>
-  </body>
-</html>
+  socket.onclose = function (e) {};
 
+  socket.onerror = function (e) {};
+
+  socket.onopen = function (e) {};
+</script>
+
+<script src="{% static 'js/resize.js' %}"></script>
+<script src="{% static 'js/host.js' %}"></script>
+{% endblock scripts %}
 <!-- r_{{memeber}}   === button to remove any member((it is for id of btn)) -->
 
 <!-- s_{{member}} === this id is used to show ready state of member -->

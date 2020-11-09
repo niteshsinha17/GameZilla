@@ -1,115 +1,97 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GameZilla</title>
-    <link
-      rel="shortcut icon"
-      href="{% static 'icons/game.png' type='image/x-icon' %}"
-    />
-    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/home.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
-  </head>
-  <body style="background: #eee">
-    <div class="rotate">
-      <p>Please turn on screen rotation and use phone in landscape mode</p>
+{% load static %}{% include "base.html" %} {% block links %}
+
+<link rel="stylesheet" href="{% static 'css/main.css' %}" />
+<link rel="stylesheet" href="{% static 'css/home.css' %}" />
+{% endblock links %} {% block body %}
+<div class="rotate">
+  <p>Please turn on screen rotation and use phone in landscape mode</p>
+</div>
+<div class="spiner">
+  <div class="loader"></div>
+</div>
+{% for message in messages%}
+<div class="message">{{message}}</div>
+{% endfor %}
+<div class="navigation">
+  <div class="navigation__bar">
+    <div class="navigation__brand">
+      <img src="{% static 'icons/logo.png' %}" alt="" />
     </div>
-    <div class="spiner">
-      <div class="loader"></div>
-    </div>
-    {% for message in messages%}
-    <div class="message">{{message}}</div>
-    {% endfor %}
-    <div class="navigation">
-      <div class="navigation__bar">
-        <div class="navigation__brand">
-          <img src="{% static 'icons/logo.png' %}" alt="" />
+    <span class="navigation__toggler">
+      <img id="navigation-icon" src="{% static 'icons/arrow.png' %}" alt="" />
+    </span>
+    <ul class="navigation__list">
+      <li class="navigation__item">
+        <a class="navigation__link">{{user.username}}</a>
+      </li>
+      <li class="navigation__item">
+        <a href="{% url 'home' %}" class="navigation__link">Home</a>
+      </li>
+      <li class="navigation__item">
+        <a href="{% url 'report' %}" class="navigation__link active">Report</a>
+      </li>
+      <li class="navigation__item">
+        <a href="" class="navigation__link">Something</a>
+      </li>
+      <li class="navigation__sub-item">Setting</li>
+      <li class="navigation__item">
+        <a href="" class="navigation__link">Password Reset</a>
+      </li>
+      <li class="navigation__item">
+        <a href="" class="navigation__link">Change Email</a>
+      </li>
+      <li class="navigation__item">
+        <a href="{% url 'logout' %}" class="navigation__link">Logout</a>
+      </li>
+      <li class="navigation__sub-item">Hosted Rooms</li>
+      {% if hosted_rooms %} {% for room in hosted_rooms %}
+      <li id="room_{{room.room.sp_id}}" class="room">
+        <div class="room__left">
+          <div class="room__id">{{room.room.sp_id}}</div>
+          <a href="/room/{{room.room}}">JOIN</a>
         </div>
-        <span class="navigation__toggler">
+
+        <button class="room__leave">
           <img
-            id="navigation-icon"
-            src="{% static 'icons/arrow.png' %}"
+            class="d-100 leave_icon"
+            id="{{room.room.sp_id}}"
+            src="{% static 'icons/leave.png' %}"
             alt=""
           />
-        </span>
-        <ul class="navigation__list">
-          <li class="navigation__item">
-            <a class="navigation__link">{{user.username}}</a>
-          </li>
-          <li class="navigation__item">
-            <a href="{% url 'home' %}" class="navigation__link">Home</a>
-          </li>
-          <li class="navigation__item">
-            <a href="{% url 'report' %}" class="navigation__link active"
-              >Report</a
-            >
-          </li>
-          <li class="navigation__item">
-            <a href="" class="navigation__link">Something</a>
-          </li>
-          <li class="navigation__sub-item">Setting</li>
-          <li class="navigation__item">
-            <a href="" class="navigation__link">Password Reset</a>
-          </li>
-          <li class="navigation__item">
-            <a href="" class="navigation__link">Change Email</a>
-          </li>
-          <li class="navigation__item">
-            <a href="{% url 'logout' %}" class="navigation__link">Logout</a>
-          </li>
-          <li class="navigation__sub-item">Hosted Rooms</li>
-          {% if hosted_rooms %} {% for room in hosted_rooms %}
-          <li id="room_{{room.room.sp_id}}" class="room">
-            <div class="room__left">
-              <div class="room__id">{{room.room.sp_id}}</div>
-              <a href="/room/{{room.room}}">JOIN</a>
-            </div>
+        </button>
+      </li>
+      {% endfor %} {% else %} No room {% endif %}
+      <li class="navigation__sub-item">Joined Rooms</li>
+      {% if joined_rooms %} {% for room in joined_rooms %}
+      <li id="room_{{room.room.sp_id}}" class="room">
+        <div class="room__left">
+          <div class="room__id">{{room.room.sp_id}}</div>
+          <a href="/join/{{room.room.sp_id}}">JOIN</a>
+        </div>
+        <button class="room__leave">
+          <img
+            class="d-100 leave_icon"
+            id="{{room.room.sp_id}}"
+            src="{% static 'icons/leave.png' %}"
+            alt=""
+          />
+        </button>
+      </li>
 
-            <button class="room__leave">
-              <img
-                class="d-100 leave_icon"
-                id="{{room.room.sp_id}}"
-                src="{% static 'icons/leave.png' %}"
-                alt=""
-              />
-            </button>
-          </li>
-          {% endfor %} {% else %} No room {% endif %}
-          <li class="navigation__sub-item">Joined Rooms</li>
-          {% if joined_rooms %} {% for room in joined_rooms %}
-          <li id="room_{{room.room.sp_id}}" class="room">
-            <div class="room__left">
-              <div class="room__id">{{room.room.sp_id}}</div>
-              <a href="/join/{{room.room.sp_id}}">JOIN</a>
-            </div>
-            <button class="room__leave">
-              <img
-                class="d-100 leave_icon"
-                id="{{room.room.sp_id}}"
-                src="{% static 'icons/leave.png' %}"
-                alt=""
-              />
-            </button>
-          </li>
+      {% endfor %} {% else %} No room {% endif %}
+    </ul>
+  </div>
+</div>
 
-          {% endfor %} {% else %} No room {% endif %}
-        </ul>
-      </div>
-    </div>
+<div class="report">
+  <h1>Report a bug</h1>
+  <form method="POST">
+    {% csrf_token %} {{report_form}}
+    <input class="report__submit" type="submit" value="Report" />
+  </form>
+</div>
 
-    <div class="report">
-      <h1>Report a bug</h1>
-      <form method="POST">
-        {% csrf_token %} {{report_form}}
-        <input class="report__submit" type="submit" value="Report" />
-      </form>
-    </div>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'js/resize.js' %}"></script>
-    <script src="{% static 'js/home.js' %}"></script>
-  </body>
-</html>
+{% endblock body %} {% block scripts %}
+<script src="{% static 'js/resize.js' %}"></script>
+<script src="{% static 'js/home.js' %}"></script>
+{% endblock scripts %}

@@ -11,6 +11,8 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db.models import Q
 from snakeAndLadder.models import SNL
+from ticTacToe.models import TAC
+
 from .forms import ReportForm
 # Create your views here.
 
@@ -160,14 +162,36 @@ def join_room(request):
 
 @login_required
 def leave(request, sp_id):
-    room = Room.objects.get(sp_id=sp_id)
+    try:
+        room = Room.objects.get(sp_id=sp_id)
+    except:
+        return
     user = request.user
     member = Member.objects.filter(room=room).get(member=user)
 
     if member.host:
         if room.started:
+            game = room.game.code
+            if game == 'SNL':
+                g = SNL.objects.get(game_id=sp_id)
+                if g.players.filter(online=False) == g.max_player:
+                    room.delete()
+                    return HttpResponse(json.dumps({
+                        'deleted': True,
+                        'reason': 'Room deleted!'
+                    }))
+            elif game == "TAC":
+                print('here tac')
+                g = TAC.objects.get(game_id=sp_id)
+                if not g.zero_active and not g.cross_active:
+                    room.delete()
+                    print('del')
+                    return HttpResponse(json.dumps({
+                        'deleted': True,
+                        'reason': 'Room deleted!'
+                    }))
             return HttpResponse(json.dumps({
-                'delete': False,
+                'deleted': False,
                 'reason': 'other players playing. Please wait!'
             }))
 
@@ -184,6 +208,7 @@ def leave(request, sp_id):
 
         return HttpResponse(json.dumps({
             'deleted': True,
+            'reason': 'Room deleted!'
 
         }))
     else:

@@ -1,244 +1,230 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GameZilla</title>
-    <link
-      rel="shortcut icon"
-      href="{% static 'icons/game.png' type='image/x-icon' %}"
-    />
-    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/room.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
-  </head>
-  <body>
-    <div class="rotate">
-      <p>Please turn on screen rotation and use phone in landscape mode</p>
-    </div>
-    <div class="room">
-      <button
-        class="room__start {% if me.ready %} {% else %} ready {% endif %} d-100"
-      >
-        Ready
+{% load static %}{% include "base.html" %} {% block links %}
+
+<link rel="stylesheet" href="{% static 'css/main.css' %}" />
+<link rel="stylesheet" href="{% static 'css/room.css' %}" />
+<link rel="stylesheet" href="{% static 'css/game_card.css' %}" />
+{% endblock links %} {% block body %}
+<div class="rotate">
+  <p>Please turn on screen rotation and use phone in landscape mode</p>
+</div>
+<div class="spiner">
+  <div class="loader"></div>
+</div>
+<div class="room">
+  <button
+    class="room__start {% if me.ready %} {% else %} ready {% endif %} d-100"
+  >
+    Ready
+  </button>
+  <button class="room__leave d-100">LEAVE</button>
+  <div
+    style="background: url({{selected_game.img.url}});"
+    class="room__bg"
+  ></div>
+
+  <div class="room__game_detail">
+    <h2 class="room__heading">
+      <img src="{% static 'icons/game.png' %}" alt="" />
+      <span>{{selected_game.game_name}}</span>
+    </h2>
+    <span>
+      <button id="detail_icon">
+        <img src="{% static 'icons/home.png' %}" alt="" />
       </button>
-      <button class="room__leave d-100">LEAVE</button>
-      <div
-        style="background: url({{selected_game.img.url}});"
-        class="room__bg"
-      ></div>
+      <button id="setting">
+        <img src="{% static 'icons/setting.png' %}" alt="" />
+      </button>
+    </span>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="room__detail">
+        <span class="detail__cross d-100"></span>
+        <h3 class="room__sub-heading">Room details</h3>
+        <ul class="detail">
+          <li class="detail__item">
+            Game Id : <span class="bold">{{room.sp_id}}</span>
+          </li>
+          <li class="detail__item">
+            Hosted By :
+            <span class="bold">{{room.created_by.username}}</span>
+          </li>
 
-      <div class="room__game_detail">
-        <h2 class="room__heading">
-          <img src="{% static 'icons/game.png' %}" alt="" />
-          <span>{{selected_game.game_name}}</span>
-        </h2>
-        <span>
-          <button id="detail_icon">
-            <img src="{% static 'icons/home.png' %}" alt="" />
-          </button>
-          <button id="setting">
-            <img src="{% static 'icons/setting.png' %}" alt="" />
-          </button>
-        </span>
-      </div>
-      <div class="container">
-        <div class="row">
-          <div class="room__detail">
-            <span class="detail__cross d-100"></span>
-            <h3 class="room__sub-heading">Room details</h3>
-            <ul class="detail">
-              <li class="detail__item">
-                Game Id : <span class="bold">{{room.sp_id}}</span>
-              </li>
-              <li class="detail__item">
-                Hosted By :
-                <span class="bold">{{room.created_by.username}}</span>
-              </li>
+          <li class="detail__item">
+            Members Joined :
+            <span class="bold">{{room.members_joined}}</span>
+          </li>
+          <li class="detail__item">
+            Max Players :
+            <span id="max_member" class="bold">{{room.game.max_players}}</span>
+          </li>
+          <li class="detail__item">
+            Min Players :
+            <span id="min_member" class="bold">{{room.game.min_player}}</span>
+          </li>
+        </ul>
 
-              <li class="detail__item">
-                Members Joined :
-                <span class="bold">{{room.members_joined}}</span>
-              </li>
-              <li class="detail__item">
-                Max Players :
-                <span id="max_member" class="bold"
-                  >{{room.game.max_players}}</span
-                >
-              </li>
-              <li class="detail__item">
-                Min Players :
-                <span id="min_member" class="bold"
-                  >{{room.game.min_player}}</span
-                >
-              </li>
-            </ul>
-
-            <button class="room__share">Invite Link</button>
-          </div>
-
-          <div class="members">
-            <h3 class="members__heading">Players Joined</h3>
-            <ul class="members__list">
-              {% for member in members %}
-              <li id="r_{{member}}" class="members__item">
-                <div class="members_name">
-                  {{member}}
-                  <span class="online">
-                    {% if member.online %} online {% else %} offline {% endif %}
-                  </span>
-                </div>
-                <div class="members__btns">
-                  <button id="s_{{member}}" class="members__ready">
-                    {% if member.ready %} READY {% else%} NOT READY {% endif %}
-                  </button>
-                </div>
-              </li>
-              {% endfor %}
-            </ul>
-          </div>
-        </div>
+        <button class="room__share">Invite Link</button>
       </div>
 
-      <div class="games_dropdown">
-        <div class="games_dropdown__top">
-          <h2 class="games_dropdown__heading">All Games</h2>
-          <span class="games_dropdown__cross"></span>
-        </div>
-        <div class="games">
-          {% for game in games %}
-          <a
-            id="{{game.code}}"
-            class="g-card {% if game.code == selected_game.code %} selected {% endif %}"
-          >
-            <img
-              id="img_{game.code}"
-              class="g-card__img"
-              src="{{game.img.url}}"
-              alt=""
-            />
-            <div class="g-card__detail">
-              <div class="g-card__name">
-                <img src="{% static 'icons/game.png' %}" alt="" />
-                <h4 class="g-card__name">{{game.game_name}}</h4>
-              </div>
-              <div class="g-card__players">
-                {{game.min_player}}-{{game.max_player}}
-              </div>
+      <div class="members">
+        <h3 class="members__heading">Players Joined</h3>
+        <ul class="members__list">
+          {% for member in members %}
+          <li id="r_{{member}}" class="members__item">
+            <div class="members_name">
+              {{member}}
+              <span class="online">
+                {% if member.online %} online {% else %} offline {% endif %}
+              </span>
             </div>
-          </a>
-
+            <div class="members__btns">
+              <button id="s_{{member}}" class="members__ready">
+                {% if member.ready %} READY {% else%} NOT READY {% endif %}
+              </button>
+            </div>
+          </li>
           {% endfor %}
-        </div>
+        </ul>
       </div>
     </div>
-    <!-- ////////////////////////////////////////// -->
-    <!-- ///////////////////////////////////////////// -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
-    <script>
-      "use strict";
+  </div>
 
-      //   getting state from response
-      var state = JSON.parse("{{state|escapejs}}");
-      const ROOM_NO = state.room_no;
+  <div class="games_dropdown">
+    <div class="games_dropdown__top">
+      <h2 class="games_dropdown__heading">All Games</h2>
+      <span class="games_dropdown__cross"></span>
+    </div>
+    <div class="games">
+      {% for game in games %}
+      <a
+        id="{{game.code}}"
+        class="g-card {% if game.code == selected_game.code %} selected {% endif %}"
+      >
+        <img
+          id="img_{game.code}"
+          class="g-card__img"
+          src="{{game.img.url}}"
+          alt=""
+        />
+        <div class="g-card__detail">
+          <div class="g-card__name">
+            <img src="{% static 'icons/game.png' %}" alt="" />
+            <h4 class="g-card__name">{{game.game_name}}</h4>
+          </div>
+          <div class="g-card__players">
+            {{game.min_player}}-{{game.max_player}}
+          </div>
+        </div>
+      </a>
 
-      const room = document.querySelector(".room__bg");
-      const members = document.querySelector(".members__list");
-      function online(member, status) {
-        let id = "#r_" + member + " .online";
-        if (status) {
-          $(id).text("online");
-        } else {
-          $(id).text("offline");
-        }
-      }
+      {% endfor %}
+    </div>
+  </div>
+</div>
 
-      function add_member(data) {
-        if (data.member === state.me) {
-          return;
-        }
-        $(".members__list").append(create_member(data));
-        if (data.ready) {
-          state.members_ready += 1;
-        }
-        state.members_joined += 1;
-        $("#members_joined").text(state.members_joined);
-      }
+{% endblock body %} {% block scripts %}
+<script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
+<script>
+  "use strict";
 
-      function create_member(data) {
-        let r = data.ready ? "ready" : "not ready";
-        return `<li id="r_${data.member}" class="members__item">
-                <div class="members_name">
-                  ${data.member}
-                  <span class="online">
-                    offline
-                  </span>
-                </div>
-                <div class="members__btns">
-                  <button id="s_${data.member}" class="members__ready">
-                   ${r}
-                  </button>
-                  <button onclick="remove(event,'${data.member}')"
-                          class="members__remove">
-                    Remove
-                    </button>
-                </div>
-            </li>`;
-      }
+  //   getting state from response
+  var state = JSON.parse("{{state|escapejs}}");
+  const ROOM_NO = state.room_no;
 
-      // websocket connection
-      var wsStart = "ws://";
-      if (window.location.protocol == "https:") {
-        wsStart = "wss://";
-      }
-      var endpoint = wsStart + window.location.host + /room/ + ROOM_NO + "/";
-      const socket = new ReconnectingWebSocket(endpoint);
+  const room = document.querySelector(".room__bg");
+  const members = document.querySelector(".members__list");
+  function online(member, status) {
+    let id = "#r_" + member + " .online";
+    if (status) {
+      $(id).text("online");
+    } else {
+      $(id).text("offline");
+    }
+  }
 
-      // socket initiallisation
-      socket.onmessage = function (e) {
-        let data = JSON.parse(e.data);
-        switch (data["action"]) {
-          case "add_member":
-            add_member(data);
-            break;
+  function add_member(data) {
+    if (data.member === state.me) {
+      return;
+    }
+    $(".members__list").append(create_member(data));
+    if (data.ready) {
+      state.members_ready += 1;
+    }
+    state.members_joined += 1;
+    $("#members_joined").text(state.members_joined);
+  }
 
-          case "member_removed":
-            remove_member(data);
-            break;
+  function create_member(data) {
+    let r = data.ready ? "ready" : "not ready";
+    return `<li id="r_${data.member}" class="members__item">
+            <div class="members_name">
+              ${data.member}
+              <span class="online">
+                offline
+              </span>
+            </div>
+            <div class="members__btns">
+              <button id="s_${data.member}" class="members__ready">
+               ${r}
+              </button>
+              <button onclick="remove(event,'${data.member}')"
+                      class="members__remove">
+                Remove
+                </button>
+            </div>
+        </li>`;
+  }
 
-          case "started":
-            started(data);
-            break;
+  // websocket connection
+  var wsStart = "ws://";
+  if (window.location.protocol == "https:") {
+    wsStart = "wss://";
+  }
+  var endpoint = wsStart + window.location.host + /room/ + ROOM_NO + "/";
+  const socket = new ReconnectingWebSocket(endpoint);
 
-          case "ready":
-            ready(data);
-            break;
+  // socket initiallisation
+  socket.onmessage = function (e) {
+    let data = JSON.parse(e.data);
+    switch (data["action"]) {
+      case "add_member":
+        add_member(data);
+        break;
 
-          case "game_changed":
-            game_changed(data);
-            break;
+      case "member_removed":
+        remove_member(data);
+        break;
 
-          case "online":
-            online(data["member"], data["status"]);
-            break;
+      case "started":
+        started(data);
+        break;
 
-          case "leaved":
-            leaved(data);
-            break;
+      case "ready":
+        ready(data);
+        break;
 
-          default:
-            break;
-        }
-      };
+      case "game_changed":
+        game_changed(data);
+        break;
 
-      socket.onclose = function (e) {};
-      socket.onerror = function (e) {};
-      socket.onopen = function (e) {};
-    </script>
-    <script src="{% static 'js/resize.js' %}"></script>
-    <script src="{% static 'js/join.js' %}"></script>
-  </body>
-</html>
+      case "online":
+        online(data["member"], data["status"]);
+        break;
+
+      case "leaved":
+        leaved(data);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  socket.onclose = function (e) {};
+  socket.onerror = function (e) {};
+  socket.onopen = function (e) {};
+</script>
+<script src="{% static 'js/resize.js' %}"></script>
+<script src="{% static 'js/join.js' %}"></script>
+{% endblock scripts %}

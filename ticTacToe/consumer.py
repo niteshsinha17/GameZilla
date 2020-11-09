@@ -135,6 +135,17 @@ class TACConsumer(AsyncConsumer):
             first_player = await self.check_run(username)
             if first_player:
                 await run(self.room_no)
+            await self.offline(username, True)
+            await self.channel_layer.group_send(
+                self.room_no, {
+                    'type': 'send_message',
+                    'text': json.dumps({
+                        'action': 'online',
+                        'player': username,
+                        'status': True
+                    })
+                }
+            )
 
     async def websocket_receive(self, event):
         username = self.scope['user'].username

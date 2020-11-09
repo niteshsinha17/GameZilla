@@ -7,6 +7,7 @@
 .join__btn {
   cursor: pointer;
   width: fit-content;
+  background: white;
   font-weight: 700;
   font-family: play;
   padding: 7px 15px;
@@ -41,7 +42,7 @@
   display: block;
 }
 
-.g-card__detail {  
+.g-card__detail {
   pointer-events: none;
   display: flex;
   margin-top: 12px;

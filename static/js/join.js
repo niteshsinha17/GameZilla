@@ -1,132 +1,132 @@
-/* jshint browser: true */ 
+/* jshint browser: true */
 /*jshint esversion: 6 */
 const link =
-        window.location.protocol + window.location.host + "/join/" + ROOM_NO;
+    window.location.protocol + window.location.host + "/join/" + ROOM_NO;
 const inviteMessage = `Hello, I have joined this game on GameZilla. Click on the bellow to join it. ${link}
         Game Id:  ${ROOM_NO}`;
 
-const bg_games = document.querySelectorAll(".g-card__img");    
+const bg_games = document.querySelectorAll(".g-card__img");
 const error_ = document.querySelector(".error");
 
-(function($){
+(function ($) {
     // "use strict";
-    $(document).ready(function(){
+    $(document).ready(function () {
         removeLoader($);
         // arrageGames(3);
         initDropdownHanders($);
         MessageHandlers($);
         addInviteMessage($);
-        setRotate($);        
-        $(window).bind("resize", function(){
-            screenOrientation = ($(window).width() > $(window).height())? 90 : 0;
+        setRotate($);
+        $(window).bind("resize", function () {
+            screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
             // 90 means landscape, 0 means portrait
             setRotate($);
         });
     });
 })(jQuery);
 
-function setRotate($){
-    screenOrientation = ($(window).width() > $(window).height())? 90 : 0;
+function setRotate($) {
+    screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
     // 90 means landscape, 0 means portrait
-    if(screenOrientation===0){
-    $('.rotate').removeClass('rotate-hide');
+    if (screenOrientation === 0) {
+        $('.rotate').removeClass('rotate-hide');
     }
-    else{
-    $('.rotate').addClass('rotate-hide');
+    else {
+        $('.rotate').addClass('rotate-hide');
     }
 }
 
-function addInviteMessage($){
+function addInviteMessage($) {
     $('.room').append(
         `<textarea class="link_message" cols="10" rows="10"></textarea>
         `);
     $('textarea').val(inviteMessage);
 }
-function removeLoader($){
+function removeLoader($) {
     $(".spiner").addClass("hide-spiner");
 }
 
-function animateButton(btn){
+function animateButton(btn) {
     $(btn).addClass("animate_btn");
-    setTimeout(function(){
+    setTimeout(function () {
         $(btn).removeClass("animate_btn");
     }, 100);
 }
 
-function initDropdownHanders($){
+function initDropdownHanders($) {
     // handles details show and hide
-    $('.detail__cross').click(function(e){
+    $('.detail__cross').click(function (e) {
         animateButton(e.target);
         $(".room__detail").removeClass("show_detail");
     });
 
-    $('#detail_icon').click(function(){
+    $('#detail_icon').click(function () {
         $(".room__detail").addClass("show_detail");
     });
 
-    $('#setting').click(function(){
+    $('#setting').click(function () {
         $('#setting').addClass("setting_active");
         $('.games_dropdown').addClass("games_dropdown-active");
     });
 
-    $('.games_dropdown__cross').click(function(){
+    $('.games_dropdown__cross').click(function () {
         $('#setting').removeClass("setting_active");
         $('.games_dropdown').removeClass("games_dropdown-active");
     });
 }
 
-function MessageHandlers($){
-    $('.room__share').click(function(e){ 
-    animateButton(e.target);
-    $('textarea').focus();
-    $('textarea').select();
-    document.execCommand("copy");    
-    showMessage("link copied",{'background':'transparent','color':'#6464ff','top':'18px'});
+function MessageHandlers($) {
+    $('.room__share').click(function (e) {
+        animateButton(e.target);
+        $('textarea').focus();
+        $('textarea').select();
+        document.execCommand("copy");
+        showMessage("link copied", { 'background': 'transparent', 'color': '#6464ff', 'top': '18px' });
     });
 }
 
-function showMessage(msg,css=None){
+function showMessage(msg, css = None) {
     let m = document.createElement("div");
     m.innerText = msg;
     m.setAttribute("class", "message");
-    if(css){
+    if (css) {
         $(m).css(css);
     }
     $('.room').append(m);
-    setTimeout(function(){
-        $(m).slideUp(500,function(){
+    setTimeout(function () {
+        $(m).slideUp(500, function () {
             $(m).remove();
         });
     }, 3000);
 }
 
-function started(data){
+function started(data) {
     if (data.can_start) {
         window.location.href = data.url;
     }
 }
 
-$('.room__leave').click(function(e){
+$('.room__leave').click(function (e) {
     animateButton(e.target);
     socket.send(JSON.stringify({ action: "leave" }));
 });
 
-$('.room__start').click(function(e){
+$('.room__start').click(function (e) {
     animateButton(e.target);
     socket.send(JSON.stringify({ action: "start" }));
 });
 
 
-function leaved(data){
+function leaved(data) {
     if (data.member === state.me || data.member === "all") {
         window.location.href = "/";
     }
-    else{
+    else {
         remove_member(data);
     }
 }
 
-function add_member(data){
+function add_member(data) {
     if (data.member === state.me) {
         return;
     }
@@ -138,7 +138,7 @@ function add_member(data){
     $('#members_joined').text(state.members_joined);
 }
 
-function create_member(data){
+function create_member(data) {
     let r = data.ready ? "ready" : "not ready";
     return (`<li id="r_${data.member}" class="members__item">
                 <div class="members_name">
@@ -157,20 +157,20 @@ function create_member(data){
                     </button>
                 </div>
             </li>`
-        );
+    );
 }
 
-function remove_member(data){
+function remove_member(data) {
     $("#r_" + data.member).remove();
     if (data.was_ready) {
         state.members_ready -= 1;
     }
-    
+
     $('#members_joined').text(state.members_joined);
     state.members_joined -= 1;
 }
 
-function ready(data){
+function ready(data) {
     if (data.state) {
         document.getElementById("s_" + data.member).innerText = "READY";
         state.members_ready += 1;
@@ -181,14 +181,14 @@ function ready(data){
     }
     if (state.me == data.member) {
         if (data.state) {
-          $(".room__start").removeClass("ready");
+            $(".room__start").removeClass("ready");
         } else {
-          $(".room__start").addClass("ready");
+            $(".room__start").addClass("ready");
         }
     }
 }
 
-function game_changed(data){
+function game_changed(data) {
     if (!data.changed) {
         showMessage(data.error);
         return;
@@ -198,11 +198,11 @@ function game_changed(data){
     $('#max_member').text(data.max_members);
     $('#min_member').text(data.min_members);
     state.game_code = data.new_code;
-    $('#'+data.old_code).removeClass("selected");
-    $('#'+data.new_code).addClass("selected");
+    $('#' + data.old_code).removeClass("selected");
+    $('#' + data.new_code).addClass("selected");
 }
 
-$('.room__start').click(function(e){
+$('.room__start').click(function (e) {
     animateButton(e.target);
     let msg = {
         action: "change_ready"

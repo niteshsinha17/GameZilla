@@ -138,6 +138,7 @@
 }
 .room__leave img {
   height: 22px;
+  pointer-events: none;
   width: 22px;
   display: block;
 }

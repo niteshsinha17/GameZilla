@@ -1,453 +1,418 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="{% static 'css/snl.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+{% load static %}{% include "base.html" %} {% block links %}
 
-    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
-    <link
-      rel="shortcut icon"
-      href="{% static 'icons/game.png' type='image/x-icon' %}"
-    />
-    <title>GameZilla</title>
-  </head>
-  <body style="overflow: hidden">
-    <div class="rotate">
-      <p>Please turn on screen rotation and use phone in landscape mode</p>
+<link rel="stylesheet" href="{% static 'css/snl.css' %}" />
+<link rel="stylesheet" href="{% static 'css/main.css' %}" />
+<link rel="stylesheet" href="{% static 'css/chat.css' %}" />
+{% endblock links %} {% block body %}
+<div class="rotate">
+  <p>Please turn on screen rotation and use phone in landscape mode</p>
+</div>
+<div class="spiner">
+  <div class="loader"></div>
+  <div class="loading_msg">Tryig to Connect.. Please wait</div>
+</div>
+<div class="chat">
+  <div class="chat__messages">
+    {% for message in messages %}
+    <div class="chat__message {% if message.user != user %} other {% endif %}">
+      <h5 class="chat__sender">{{message.user}}</h5>
+      <p class="chat__msg {% if message.user != user %} other {% endif %}">
+        {{message.text}}
+      </p>
     </div>
-    <div class="spiner">
-      <div class="loader"></div>
-      <div class="loading_msg">Tryig to Connect.. Please wait</div>
+    {% endfor %}
+  </div>
+  <div class="chat__send">
+    <input id="message" class="chat__input" type="text" placeholder="Message" />
+    <button onclick="send()" class="chat__send-btn">
+      <img src="{% static 'icons/send.png' %}" alt="" />
+    </button>
+  </div>
+</div>
+<div class="SNL">
+  <div class="SNL__card">
+    <div class="game_board">
+      {% for player in players %}
+      <div
+        id="p_{{player.player.username}}"
+        class="SNL__player {{player.color}}"
+      ></div>
+      {% endfor %}
+
+      <div class="SNL__dice"></div>
     </div>
-    <div class="chat">
-      <div class="chat__messages">
-        {% for message in messages %}
-        <div
-          class="chat__message {% if message.user != user %} other {% endif %}"
+  </div>
+  <div class="SNL__card">
+    <div class="SNL__details">
+      <div class="SNL__id">
+        GAME ID:
+        <div class="id">{{game.game_id}}</div>
+      </div>
+
+      <div class="SNL__states">
+        <div class="SNL__state">
+          TURN
+          <div class="current_player">{{game.current_player}}</div>
+        </div>
+        <div class="SNL__state">
+          TIME LEFT
+          <div class="timer">12</div>
+        </div>
+      </div>
+      <ul class="SNL__players">
+        {% for player in players %}
+        <li
+          id="l_{{player.player.username}}"
+          class="player {% if player.leaved %} disable {% endif %}"
         >
-          <h5 class="chat__sender">{{message.user}}</h5>
-          <p class="chat__msg {% if message.user != user %} other {% endif %}">
-            {{message.text}}
-          </p>
-        </div>
+          {% if player.rank > 0 %}
+          <div class="player__rank">{{player.rank}}</div>
+          {% endif %}
+
+          <div class="player__name {{player.color}}">
+            {{player.player.username}}
+          </div>
+          <div id="s_{{player.player.username}}" class="player__online">
+            {% if player.online %} online {% else %} offline {% endif %}
+          </div>
+        </li>
         {% endfor %}
-      </div>
-      <div class="chat__send">
-        <input
-          id="message"
-          class="chat__input"
-          type="text"
-          placeholder="Message"
-        />
-        <button onclick="send()" class="chat__send-btn">
-          <img src="{% static 'icons/send.png' %}" alt="" />
+      </ul>
+
+      <ul class="settings">
+        <li class="settings__item">
+          <button onclick="handle_exit(event)" id="exit" class="settings__btn">
+            <img class="d-100" src="{% static 'icons/exit.png' %}" alt="" />
+          </button>
+        </li>
+        <li class="settings__item">
+          <button
+            onclick="handle_sound(event)"
+            id="sound"
+            class="settings__btn"
+          >
+            <img class="d-100" src="{% static 'icons/sound.png' %}" alt="" />
+          </button>
+        </li>
+        <li class="settings__item">
+          <button
+            onclick="handle_music(event)"
+            id="music"
+            class="settings__btn"
+          >
+            <img class="d-100" src="{% static 'icons/music.png' %}" alt="" />
+          </button>
+        </li>
+        <li class="settings__item">
+          <button onclick="handle_chat(event)" id="chat" class="settings__btn">
+            <div class="unread"></div>
+            <img class="d-100" src="{% static 'icons/msg2.png' %}" alt="" />
+          </button>
+        </li>
+        <li class="settings__item">
+          <button
+            onclick="play(event)"
+            id="play"
+            class="settings__btn {% if player.rank > 0 %} disable{% endif %}"
+          >
+            <img class="d-100" src="{% static 'icons/play.png' %}" alt="" />
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<ul class="SNL__notification"></ul>
+
+<div class="exit">
+  <div class="exit__wrapper">
+    <h3 class="exit__heading">Are you Confirm?</h3>
+    <ul class="exit__list">
+      <li class="exit__item">
+        <button onclick="leave()" class="leave exit__btn">
+          <img src="{% static 'icons/correct.png' %}" alt="" />
         </button>
-      </div>
+        <div class="exit__option">YES</div>
+      </li>
+      <li class="exit__item">
+        <button class="stay exit__btn">
+          <img src="{% static 'icons/cross.png' %}" alt="" />
+        </button>
+        <div class="exit__option">NO</div>
+      </li>
+    </ul>
+    <p class="exit__para">
+      If Yes, You will not be able to join this game again
+    </p>
+  </div>
+</div>
+<div class="winners">
+  <div class="winner_animate_div">
+    <div class="winner__heading">Game Over</div>
+    <div class="winners__wrapper"></div>
+    <div class="winners__btns">
+      <a href="" class="winners__room"
+        >Go back to room (<span class="winners__time"></span>)
+      </a>
+      <a href="" class="winners__exit">Exit</a>
     </div>
-    <div class="SNL">
-      <div class="SNL__card">
-        <div class="game_board">
-          {% for player in players %}
-          <div
-            id="p_{{player.player.username}}"
-            class="SNL__player {{player.color}}"
-          ></div>
-          {% endfor %}
+    <div class="winners__leaved">Leaved the Game</div>
+  </div>
+</div>
 
-          <div class="SNL__dice"></div>
-        </div>
-      </div>
-      <div class="SNL__card">
-        <div class="SNL__details">
-          <div class="SNL__id">
-            GAME ID:
-            <div class="id">{{game.game_id}}</div>
-          </div>
+<!-- ////////////////////////////////////////// -->
+<!-- /////////////////////////////////////////// -->
 
-          <div class="SNL__states">
-            <div class="SNL__state">
-              TURN
-              <div class="current_player">{{game.current_player}}</div>
-            </div>
-            <div class="SNL__state">
-              TIME LEFT
-              <div class="timer">12</div>
-            </div>
-          </div>
-          <ul class="SNL__players">
-            {% for player in players %}
-            <li
-              id="l_{{player.player.username}}"
-              class="player {% if player.leaved %} disable {% endif %}"
-            >
-              {% if player.rank > 0 %}
-              <div class="player__rank">{{player.rank}}</div>
-              {% endif %}
+<audio
+  style="display: none"
+  loop="True"
+  id="snl_music"
+  controls
+  src="{% static 'music/snl_music.mp3' %}"
+  type="audio/mpeg"
+></audio>
+<audio
+  style="display: none"
+  id="sound_ladder"
+  controls
+  src="{% static 'music/ladder.mp3' %}"
+  type="audio/mpeg"
+></audio>
+<audio
+  style="display: none"
+  id="sound_snake"
+  controls
+  src="{% static 'music/snake.mp3' %}"
+  type="audio/mpeg"
+></audio>
+<audio
+  style="display: none"
+  id="sound_notification"
+  controls
+  src="{% static 'music/notification.mp3' %}"
+  type="audio/mpeg"
+></audio>
+<audio
+  style="display: none"
+  id="sound_msg"
+  controls
+  src="{% static 'music/message.mp3' %}"
+  type="audio/mpeg"
+></audio>
+<audio
+  style="display: none"
+  id="sound_win"
+  controls
+  src="{% static 'music/win.mp3' %}"
+  type="audio/mpeg"
+></audio>
+<audio
+  style="display: none"
+  id="sound_open"
+  controls
+  src="{% static 'music/open.mp3' %}"
+  type="audio/mpeg"
+></audio>
 
-              <div class="player__name {{player.color}}">
-                {{player.player.username}}
-              </div>
-              <div id="s_{{player.player.username}}" class="player__online">
-                {% if player.online %} online {% else %} offline {% endif %}
-              </div>
-            </li>
-            {% endfor %}
-          </ul>
+{% endblock body %} {% block scripts %}
+<script src="{% static 'js/snl.js' %}"></script>
+<script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
+<script>
+  // constants
+  const players = JSON.parse("{{players_json|escapejs}}");
+  const me = JSON.parse("{{me|escapejs}}")["me"];
 
-          <ul class="settings">
-            <li class="settings__item">
-              <button
-                onclick="handle_exit(event)"
-                id="exit"
-                class="settings__btn"
-              >
-                <img class="d-100" src="{% static 'icons/exit.png' %}" alt="" />
-              </button>
-            </li>
-            <li class="settings__item">
-              <button
-                onclick="handle_sound(event)"
-                id="sound"
-                class="settings__btn"
-              >
-                <img
-                  class="d-100"
-                  src="{% static 'icons/sound.png' %}"
-                  alt=""
-                />
-              </button>
-            </li>
-            <li class="settings__item">
-              <button
-                onclick="handle_music(event)"
-                id="music"
-                class="settings__btn"
-              >
-                <img
-                  class="d-100"
-                  src="{% static 'icons/music.png' %}"
-                  alt=""
-                />
-              </button>
-            </li>
-            <li class="settings__item">
-              <button
-                onclick="handle_chat(event)"
-                id="chat"
-                class="settings__btn"
-              >
-                <div class="unread"></div>
-                <img class="d-100" src="{% static 'icons/msg2.png' %}" alt="" />
-              </button>
-            </li>
-            <li class="settings__item">
-              <button
-                onclick="play(event)"
-                id="play"
-                class="settings__btn {% if player.rank > 0 %} disable{% endif %}"
-              >
-                <img class="d-100" src="{% static 'icons/play.png' %}" alt="" />
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+  // timer variables
+  var opened, timer_, stop_timer_, no_respose_timer, change_player_timer;
 
-    <ul class="SNL__notification"></ul>
+  // websocket settings
+  const ROOM_NO = JSON.parse("{{room_id|escapejs}}")["room_id"];
+  // websocket connection
+  var wsStart = "ws://";
+  if (window.location.protocol == "https:") {
+    wsStart = "wss://";
+  }
+  var endpoint = wsStart + window.location.host + /SNL/ + ROOM_NO + "/";
+  const socket = new ReconnectingWebSocket(endpoint);
 
-    <div class="exit">
-      <div class="exit__wrapper">
-        <h3 class="exit__heading">Are you Confirm?</h3>
-        <ul class="exit__list">
-          <li class="exit__item">
-            <button onclick="leave()" class="leave exit__btn">
-              <img src="{% static 'icons/correct.png' %}" alt="" />
-            </button>
-            <div class="exit__option">YES</div>
-          </li>
-          <li class="exit__item">
-            <button class="stay exit__btn">
-              <img src="{% static 'icons/cross.png' %}" alt="" />
-            </button>
-            <div class="exit__option">NO</div>
-          </li>
-        </ul>
-        <p class="exit__para">
-          If Yes, You will not be able to join this game again
-        </p>
-      </div>
-    </div>
-    <div class="winners">
-      <div class="winner_animate_div">
-        <div class="winner__heading">Game Over</div>
-        <div class="winners__wrapper"></div>
-        <div class="winners__btns">
-          <a href="" class="winners__room"
-            >Go back to room (<span class="winners__time"></span>)
-          </a>
-          <a href="" class="winners__exit">Exit</a>
-        </div>
-        <div class="winners__leaved">Leaved the Game</div>
-      </div>
-    </div>
+  function online(data) {
+    if (data.status) {
+      $("#s_" + data.player).html("online");
+    } else {
+      $("#s_" + data.player).html("offline");
+    }
+  }
+  function clearTimer() {
+    if (timer_) {
+      clearInterval(timer_);
+    }
 
-    <!-- ////////////////////////////////////////// -->
-    <!-- /////////////////////////////////////////// -->
+    if (stop_timer_) {
+      clearTimeout(stop_timer_);
+    }
+  }
 
-    <audio
-      style="display: none"
-      loop="True"
-      id="snl_music"
-      controls
-      src="{% static 'music/snl_music.mp3' %}"
-      type="audio/mpeg"
-    ></audio>
-    <audio
-      style="display: none"
-      id="sound_ladder"
-      controls
-      src="{% static 'music/ladder.mp3' %}"
-      type="audio/mpeg"
-    ></audio>
-    <audio
-      style="display: none"
-      id="sound_snake"
-      controls
-      src="{% static 'music/snake.mp3' %}"
-      type="audio/mpeg"
-    ></audio>
-    <audio
-      style="display: none"
-      id="sound_notification"
-      controls
-      src="{% static 'music/notification.mp3' %}"
-      type="audio/mpeg"
-    ></audio>
-    <audio
-      style="display: none"
-      id="sound_msg"
-      controls
-      src="{% static 'music/message.mp3' %}"
-      type="audio/mpeg"
-    ></audio>
-    <audio
-      style="display: none"
-      id="sound_win"
-      controls
-      src="{% static 'music/win.mp3' %}"
-      type="audio/mpeg"
-    ></audio>
-    <audio
-      style="display: none"
-      id="sound_open"
-      controls
-      src="{% static 'music/open.mp3' %}"
-      type="audio/mpeg"
-    ></audio>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="{% static 'js/snl.js' %}"></script>
-    <script src="{% static 'vender/reconnecting-websocket.min.js' %}"></script>
-    <script>
-      // constants
-      const players = JSON.parse("{{players_json|escapejs}}");
-      const me = JSON.parse("{{me|escapejs}}")["me"];
-
-      // timer variables
-      var opened, timer_, stop_timer_, no_respose_timer, change_player_timer;
-
-      // websocket settings
-      const ROOM_NO = JSON.parse("{{room_id|escapejs}}")["room_id"];
-      // websocket connection
-      var wsStart = "ws://";
-      if (window.location.protocol == "https:") {
-        wsStart = "wss://";
-      }
-      var endpoint = wsStart + window.location.host + /SNL/ + ROOM_NO + "/";
-      const socket = new ReconnectingWebSocket(endpoint);
-
-      function online(data) {
-        if (data.status) {
-          $("#s_" + data.player).html("online");
-        } else {
-          $("#s_" + data.player).html("offline");
-        }
-      }
-      function clearTimer() {
-        if (timer_) {
-          clearInterval(timer_);
-        }
-
-        if (stop_timer_) {
-          clearTimeout(stop_timer_);
-        }
-      }
-
-      function initialization() {
-        players.forEach((player) => {
-          if (player.position === 1) {
-            if (player.can_move) {
-              set_position(player.name, 0, 0);
-              $("#p_" + player.name).animate({
-                opacity: 1,
-                width: defaultWidth + "px",
-                height: defaultWidth + "px",
-              });
-            }
-            return;
-          }
-          p = player.position;
-          player_ = player.name;
-
+  function initialization() {
+    players.forEach((player) => {
+      if (player.position === 1) {
+        if (player.can_move) {
+          set_position(player.name, 0, 0);
           $("#p_" + player.name).animate({
             opacity: 1,
             width: defaultWidth + "px",
             height: defaultWidth + "px",
           });
+        }
+        return;
+      }
+      p = player.position;
+      player_ = player.name;
 
-          if (p <= 10) {
-            set_position(player_, p - 1, 0);
-          } else {
-            b = Math.floor(p / 10);
-            reminder = p % 10;
-            if (reminder === 0) {
-              b--;
-            }
-            if (b % 2 === 0) {
-              if (reminder === 0) {
-                reminder = 10;
-              }
-              set_position(player_, reminder - 1, b);
-            } else {
-              if (reminder === 0) {
-                reminder = 10;
-              }
-              set_position(player_, 10 - reminder, b);
-            }
+      $("#p_" + player.name).animate({
+        opacity: 1,
+        width: defaultWidth + "px",
+        height: defaultWidth + "px",
+      });
+
+      if (p <= 10) {
+        set_position(player_, p - 1, 0);
+      } else {
+        b = Math.floor(p / 10);
+        reminder = p % 10;
+        if (reminder === 0) {
+          b--;
+        }
+        if (b % 2 === 0) {
+          if (reminder === 0) {
+            reminder = 10;
           }
-        });
-      }
-      function set_position(player, x, y) {
-        let p = document.querySelector("#p_" + player);
-        p.style.left = `${x * defaultChange + defaultLeft}px`;
-        p.style.bottom = `${y * defaultChange + defaultBottom}px`;
-      }
-
-      socket.onmessage = function (e) {
-        if ($(".spiner").length) {
-          // remove spinner
-          $(".spiner").remove();
-        }
-        const data = JSON.parse(e["data"]);
-        if (
-          (data["action"] != "message" && data["action"] != "online") ||
-          (data["action"] != "leaved" && data["start"] == false)
-        ) {
-          clearTimeout(no_respose_timer);
-          clearTimer();
-        }
-        console.log(data["action"]);
-        switch (data["action"]) {
-          case "move":
-            showDice(data["number"]);
-            move(data, data["position"]);
-            started(data);
-            if (data["win"]) {
-              win(data);
-            }
-            break;
-
-          case "double_move":
-            showDice(data["number"]);
-            double_move(data);
-            started(data);
-            break;
-
-          case "player_changed":
-            started(data);
-            break;
-
-          case "open":
-            showDice(data["number"]);
-            open_player(data);
-            break;
-
-          case "started":
-            started(data);
-            break;
-
-          case "game_over":
-            showDice(data["number"]);
-            setTimeout(game_over(data), 3000);
-
-            break;
-          case "leaved":
-            leaved(data);
-            break;
-
-          case "set_state":
-            if (data["error"]) {
-              started(data);
-            }
-            break;
-
-          case "again_entered":
-            initialization();
-            started(data);
-            break;
-
-          case "cant_move":
-            cant_move(data);
-            break;
-
-          case "error":
-            notification(data["error_msg"]);
-            break;
-
-          case "player_not_joined":
-            player_not_joined();
-            break;
-
-          case "message":
-            message(data);
-            break;
-
-          case "online":
-            online(data);
-            break;
-
-          default:
-            break;
-        }
-      };
-      function showStarting() {
-        $(".loading_msg").html(
-          "Connected, Starting in <span class='loading_time'>15</span> secs.."
-        );
-        let t = 15;
-        let loading_interval = setInterval(function () {
-          if (t < 1) {
-            clearInterval(loading_interval);
-          } else {
-            t--;
-            $(".loading_time").text(t);
+          set_position(player_, reminder - 1, b);
+        } else {
+          if (reminder === 0) {
+            reminder = 10;
           }
-        }, 1000);
+          set_position(player_, 10 - reminder, b);
+        }
       }
-      socket.onclose = function (e) {
-        console.log("onclose", e);
-      };
-      socket.onerror = function (e) {
-        console.log("onerror", e);
-      };
-      socket.onopen = function (e) {
-        console.log("onopen", e);
-        showStarting();
-      };
-    </script>
-  </body>
-</html>
+    });
+  }
+  function set_position(player, x, y) {
+    let p = document.querySelector("#p_" + player);
+    p.style.left = `${x * defaultChange + defaultLeft}px`;
+    p.style.bottom = `${y * defaultChange + defaultBottom}px`;
+  }
+
+  socket.onmessage = function (e) {
+    if ($(".spiner").length) {
+      // remove spinner
+      $(".spiner").remove();
+    }
+    const data = JSON.parse(e["data"]);
+    if (
+      (data["action"] != "message" && data["action"] != "online") ||
+      (data["action"] != "leaved" && data["start"] == false)
+    ) {
+      clearTimeout(no_respose_timer);
+      clearTimer();
+    }
+    console.log(data["action"]);
+    switch (data["action"]) {
+      case "move":
+        showDice(data["number"]);
+        move(data, data["position"]);
+        started(data);
+        if (data["win"]) {
+          win(data);
+        }
+        break;
+
+      case "double_move":
+        showDice(data["number"]);
+        double_move(data);
+        started(data);
+        break;
+
+      case "player_changed":
+        started(data);
+        break;
+
+      case "open":
+        showDice(data["number"]);
+        open_player(data);
+        break;
+
+      case "started":
+        started(data);
+        break;
+
+      case "game_over":
+        showDice(data["number"]);
+        setTimeout(game_over(data), 3000);
+
+        break;
+      case "leaved":
+        leaved(data);
+        break;
+
+      case "set_state":
+        if (data["error"]) {
+          started(data);
+        }
+        break;
+
+      case "again_entered":
+        initialization();
+        started(data);
+        break;
+
+      case "cant_move":
+        cant_move(data);
+        break;
+
+      case "error":
+        notification(data["error_msg"]);
+        break;
+
+      case "player_not_joined":
+        player_not_joined();
+        break;
+
+      case "message":
+        message(data);
+        break;
+
+      case "online":
+        online(data);
+        break;
+
+      default:
+        break;
+    }
+  };
+  function showStarting() {
+    $(".loading_msg").html(
+      "Connected, Starting in <span class='loading_time'>15</span> secs.."
+    );
+    let t = 15;
+    let loading_interval = setInterval(function () {
+      if (t < 1) {
+        clearInterval(loading_interval);
+      } else {
+        t--;
+        $(".loading_time").text(t);
+      }
+    }, 1000);
+  }
+  socket.onclose = function (e) {
+    console.log("onclose", e);
+  };
+  socket.onerror = function (e) {
+    console.log("onerror", e);
+  };
+  socket.onopen = function (e) {
+    console.log("onopen", e);
+    showStarting();
+  };
+</script>
+{% endblock scripts %}

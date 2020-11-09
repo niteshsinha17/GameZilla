@@ -1,112 +1,92 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GameZilla</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}" />
-    <link
-      rel="shortcut icon"
-      href="{% static 'icons/game.png' type='image/x-icon' %}"
-    />
-    <link rel="stylesheet" href="{% static 'css/rotate.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/register.css' %}" />
-  </head>
-  <body>
-    <div class="rotate">
-      <p>Please turn on screen rotation and use phone in landscape mode</p>
+{% load static %}{% include "base.html" %} {% block links %}
+
+<link rel="stylesheet" href="{% static 'css/register.css' %}" />
+{% endblock links %} {% block body %}
+<div class="rotate">
+  <p>Please turn on screen rotation and use phone in landscape mode</p>
+</div>
+<div class="spiner">
+  <div class="loader"></div>
+</div>
+<div class="background">
+  <div class="background__nav">
+    <a class="background__brand">
+      <img src="{% static 'icons/logo.png' %}" alt="" />
+    </a>
+
+    <div class="background__login">
+      <form method="POST" class="login">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="login" />
+        {% for field in login_form %} {{field}} {% endfor %}
+        <input type="submit" value="Login" class="login__submit" />
+      </form>
+      {% for err in login_form.non_field_errors %}
+      <p class="login_error">{{err}}</p>
+      {% endfor %}
     </div>
-    <div class="spiner">
-      <div class="loader"></div>
+  </div>
+  <div class="background__slider">
+    <div id="ss1" class="s_slider s-active">
+      <div class="s_slider__content">
+        <h1 class="s_slider__heading">Mulyiplayer Feature</h1>
+        <p class="s_slider__para">
+          Invite your friends and enjoy the game together
+        </p>
+      </div>
     </div>
-    <div class="background">
-      <div class="background__nav">
-        <a class="background__brand">
-          <img src="{% static 'icons/logo.png' %}" alt="" />
-        </a>
-
-        <div class="background__login">
-          <form method="POST" class="login">
-            {% csrf_token %}
-
-            <input type="hidden" name="form_type" value="login" />
-            {% for field in login_form %} {{field}} {% endfor %}
-            <input type="submit" value="Login" class="login__submit" />
-          </form>
-          {% for err in login_form.non_field_errors %}
-          <p class="login_error">{{err}}</p>
-          {% endfor %}
-        </div>
+    <div id="ss2" class="s_slider">
+      <div style="color: white" class="s_slider__content">
+        <h1 style="color: white" class="s_slider__heading">
+          Gossip While Playing
+        </h1>
+        <p class="s_slider__para">
+          Special feature in game gives you an option to chat while playing
+        </p>
       </div>
-      <div class="background__slider">
-        <div id="ss1" class="s_slider s-active">
-          <div class="s_slider__content">
-            <h1 class="s_slider__heading">Mulyiplayer Feature</h1>
-            <p class="s_slider__para">
-              Invite your friends and enjoy the game together
-            </p>
-          </div>
-        </div>
-        <div id="ss2" class="s_slider">
-          <div style="color: white" class="s_slider__content">
-            <h1 style="color: white" class="s_slider__heading">
-              Gossip While Playing
-            </h1>
-            <p class="s_slider__para">
-              Special feature in game gives you an option to chat while playing
-            </p>
-          </div>
-        </div>
-        <div id="ss3" class="s_slider">
-          <div style="color: white" class="s_slider__content">
-            <h1 style="color: white" class="s_slider__heading">
-              Lots of Games
-            </h1>
-            <p class="s_slider__para">Multiples games are avialable</p>
-          </div>
-        </div>
+    </div>
+    <div id="ss3" class="s_slider">
+      <div style="color: white" class="s_slider__content">
+        <h1 style="color: white" class="s_slider__heading">Lots of Games</h1>
+        <p class="s_slider__para">Multiples games are avialable</p>
       </div>
+    </div>
+  </div>
 
-      <div class="register {% if show %} active {% endif %}">
-        <div class="register__up">
-          <a id="register_btn" class="register__navigator">Regiter</a>
-        </div>
-        <div class="register__forms">
-          <div
-            id="form"
-            class="register__form {% if show %} active {% endif %}"
-          >
-            <h2 class="register__heading">Register</h2>
-            <p class="register__para">Its simple and fast.</p>
-            <div class="register__divider"></div>
-            <form id="registration_form" method="POST">
-              {% csrf_token%}
-              <input type="hidden" name="form_type" value="register" />
-              {% for field in registration_form %}
-              <p class="register__field-error">{{field.errors}}</p>
-              {{field}} {% endfor %}
-              <div class="register__btns">
-                <input
-                  id="btn_register"
-                  type="submit"
-                  class="register__btn"
-                  value="Sign Up"
-                />
-                <!-- <p class="register__forget">Forget Password</p> -->
-              </div>
-            </form>
+  <div class="register {% if show %} active {% endif %}">
+    <div class="register__up">
+      <a id="register_btn" class="register__navigator">Regiter</a>
+    </div>
+    <div class="register__forms">
+      <div id="form" class="register__form {% if show %} active {% endif %}">
+        <h2 class="register__heading">Register</h2>
+        <p class="register__para">Its simple and fast.</p>
+        <div class="register__divider"></div>
+        <form id="registration_form" method="POST">
+          {% csrf_token%}
+          <input type="hidden" name="form_type" value="register" />
+          {% for field in registration_form %}
+          <p class="register__field-error">{{field.errors}}</p>
+          {{field}} {% endfor %}
+          <div class="register__btns">
+            <input
+              id="btn_register"
+              type="submit"
+              class="register__btn"
+              value="Sign Up"
+            />
+            <!-- <p class="register__forget">Forget Password</p> -->
           </div>
-        </div>
-
-        <div class="register__down">
-          <a id="login_btn" class="register__navigator">Login</a>
-        </div>
+        </form>
       </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- <script src="{% static 'js/main.js' %}"></script> -->
-    <script src="{% static 'js/register.js' %}"></script>
-  </body>
-</html>
+    <div class="register__down">
+      <a id="login_btn" class="register__navigator">Login</a>
+    </div>
+  </div>
+</div>
+{% endblock body %} {% block scripts %}
+
+<script src="{% static 'js/register.js' %}"></script>
+{% endblock scripts %}

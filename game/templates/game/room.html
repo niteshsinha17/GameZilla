@@ -190,11 +190,17 @@
     }
   };
 
-  socket.onclose = function (e) {};
+  socket.onclose = function (e) {
+    console.log("onclose");
+  };
 
-  socket.onerror = function (e) {};
+  socket.onerror = function (e) {
+    console.log("onerror");
+  };
 
-  socket.onopen = function (e) {};
+  socket.onopen = function (e) {
+    console.log("onopen");
+  };
 </script>
 
 <script src="{% static 'js/resize.js' %}"></script>

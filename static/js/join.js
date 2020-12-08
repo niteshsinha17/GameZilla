@@ -136,7 +136,6 @@ function add_member(data) {
     if (data.member === state.me) {
         return;
     }
-    console.log($('r_' + data.member).length);
     if ($('#r_'+data.member).length){
         return;
     }

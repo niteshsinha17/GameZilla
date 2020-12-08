@@ -311,7 +311,6 @@
 
   socket.onmessage = function (e) {
     const data = JSON.parse(e["data"]);
-    console.log(data.action);
     if (data.action === "game_over") {
       clearTimeout(change_player_timer);
     }
@@ -432,14 +431,9 @@
       }
     }, 1000);
   }
-  socket.onclose = function (e) {
-    console.log("onclose", e);
-  };
-  socket.onerror = function (e) {
-    console.log("onerror", e);
-  };
+  socket.onclose = function (e) {};
+  socket.onerror = function (e) {};
   socket.onopen = function (e) {
-    console.log("onopen", e);
     showStarting();
   };
 </script>

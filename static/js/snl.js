@@ -39,7 +39,6 @@ var t = 12;
 function exitHandlers($){
   $('.winners__room').on('click',function(e){
     e.preventDefault()
-    console.log('here--------');
     window.location.href = '/room/'+ ROOM_NO;
   })
   $('.winners__exit').on('click',function(e){

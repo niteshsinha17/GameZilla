@@ -31,7 +31,6 @@ class RoomManager(models.Manager):
 
 class MemberManager(models.Manager):
     def get_joined_rooms(self, user):
-        print(user.username)
         return [member.room for member in
                 self.filter(member=user, host=False, leaved=False)]
 

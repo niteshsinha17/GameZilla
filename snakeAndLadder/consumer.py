@@ -51,7 +51,6 @@ def start(room_no):
         players = game.get_not_joined_players()
         game.delete()
         game.room.reset()
-        print('-----------------')
         return {
             'action': 'player_not_joined',
             'players': players
@@ -174,7 +173,6 @@ class SNLConsumer(AsyncConsumer):
     async def websocket_receive(self, event):
         username = self.scope['user'].username
         msg = json.loads(event['text'])
-        print(msg['action'], username)
 
         if msg['action'] == 'change_player':
             state = await self.change_player()

@@ -14,6 +14,9 @@
 <div class="spiner">
   <div class="loader"></div>
 </div>
+<div class="backdrop hide-backdrop">
+  <div class="loader"></div>
+</div>
 {% for message in messages%}
 <div class="message">{{message}}</div>
 {% endfor %}
@@ -29,6 +32,11 @@
       <li class="navigation__item">
         <a href="" class="navigation__link">{{user.username}}</a>
       </li>
+      {% if user.is_superuser %}
+      <li class="navigation__item">
+        <a href="/admin/" class="navigation__link">Admin Site</a>
+      </li>
+      {% endif %}
       <li class="navigation__item">
         <a href="" class="navigation__link active">Home</a>
       </li>
@@ -57,11 +65,7 @@
         </div>
 
         <button id="{{room.sp_id}}" class="d-100 room__leave">
-          <img
-            class=" leave_icon"            
-            src="{% static 'icons/leave.png' %}"
-            alt=""
-          />
+          <img class="leave_icon" src="{% static 'icons/leave.png' %}" alt="" />
         </button>
       </li>
       {% endfor %} {% else %} No room {% endif %}
@@ -72,13 +76,8 @@
           <div class="room__id">{{room.sp_id}}</div>
           <a href="/join/{{room.sp_id}}">JOIN</a>
         </div>
-        <button class="d-100 room__leave">
-          <img
-            class="leave_icon"
-            id="{{room.sp_id}}"
-            src="{% static 'icons/leave.png' %}"
-            alt=""
-          />
+        <button id="{{room.sp_id}}" class="d-100 room__leave">
+          <img class="leave_icon" src="{% static 'icons/leave.png' %}" alt="" />
         </button>
       </li>
 

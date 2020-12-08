@@ -69,11 +69,13 @@ function remove(event, member_name) {
 
 $('.room__start').click(function (e) {
     animateButton(e.target);
+    $('.backdrop').removeClass('hide-backdrop');
     socket.send(JSON.stringify({ action: "start" }));
 });
 
 $('.room__leave').click(function (e) {
     animateButton(e.target);
+    $('.backdrop').removeClass('hide-backdrop');
     socket.send(JSON.stringify({ action: "leave" }));
 });
 
@@ -105,11 +107,13 @@ function MessageHandlers($) {
         $('textarea').focus();
         $('textarea').select();
         document.execCommand("copy");
+        $('textarea').blur();
         showMessage("link copied", { 'background': 'transparent', 'color': '#6464ff', 'top': '18px' });
     });
 }
 
 function showMessage(msg, css = null) {
+    $('.backdrop').addClass('hide-backdrop');
     let m = document.createElement("div");
     m.innerText = msg;
     m.setAttribute("class", "message");
@@ -126,11 +130,20 @@ function showMessage(msg, css = null) {
 
 function started(data) {
     if (data.can_start) {
+        $('.backdrop').append('<p>starting<p/>');
         window.location.href = data.url;
     }
     else {
         showMessage(data.error);
     }
+}
+
+function remove_players(players){
+    players.forEach(player => {
+        if (player.member !== state.me){
+            leaved(player);
+        }
+    });
 }
 
 function leaved(data) {
@@ -139,11 +152,15 @@ function leaved(data) {
     }
     else {
         remove_member(data);
+        showMessage(data.leaved_msg);
     }
 }
 
 function add_member(data) {
     if (data.member === state.me) {
+        return;
+    }
+    if ($('#r_'+data.member).length){
         return;
     }
     $(".members__list").append(create_member(data));
@@ -186,7 +203,6 @@ function remove_member(data) {
         state.members_ready -= 1;
     }
     state.members_joined -= 1;
-
     $('#members_joined').text(state.members_joined);
     set_start();
 }

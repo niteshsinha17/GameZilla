@@ -36,18 +36,16 @@
       </div>
     </div>
     <div id="ss2" class="s_slider">
-      <div style="color: white" class="s_slider__content">
-        <h1 style="color: white" class="s_slider__heading">
-          Gossip While Playing
-        </h1>
+      <div class="s_slider__content">
+        <h1 class="s_slider__heading">Gossip While Playing</h1>
         <p class="s_slider__para">
           Special feature in game gives you an option to chat while playing
         </p>
       </div>
     </div>
     <div id="ss3" class="s_slider">
-      <div style="color: white" class="s_slider__content">
-        <h1 style="color: white" class="s_slider__heading">Lots of Games</h1>
+      <div class="s_slider__content">
+        <h1 class="s_slider__heading">Lots of Games</h1>
         <p class="s_slider__para">Multiples games are avialable</p>
       </div>
     </div>
@@ -55,12 +53,11 @@
 
   <div class="register {% if show %} active {% endif %}">
     <div class="register__up">
-      <a id="register_btn" class="register__navigator">Regiter</a>
+      <a id="register_btn" class="register__navigator">Register</a>
     </div>
     <div class="register__forms">
       <div id="form" class="register__form {% if show %} active {% endif %}">
         <h2 class="register__heading">Register</h2>
-        <p class="register__para">Its simple and fast.</p>
         <div class="register__divider"></div>
         <form id="registration_form" method="POST">
           {% csrf_token%}

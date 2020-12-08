@@ -81,11 +81,13 @@ function MessageHandlers($) {
         $('textarea').focus();
         $('textarea').select();
         document.execCommand("copy");
+        $('textarea').blur();
         showMessage("link copied", { 'background': 'transparent', 'color': '#6464ff', 'top': '18px' });
     });
 }
 
-function showMessage(msg, css = None) {
+function showMessage(msg, css = null) {
+    $('.backdrop').addClass('hide-backdrop');
     let m = document.createElement("div");
     m.innerText = msg;
     m.setAttribute("class", "message");
@@ -102,12 +104,15 @@ function showMessage(msg, css = None) {
 
 function started(data) {
     if (data.can_start) {
+        $('.backdrop').append('<p>starting<p/>');
+        $('.backdrop').removeClass('hide-backdrop');
         window.location.href = data.url;
     }
 }
 
 $('.room__leave').click(function (e) {
     animateButton(e.target);
+    $('.backdrop').removeClass('hide-backdrop');
     socket.send(JSON.stringify({ action: "leave" }));
 });
 
@@ -123,11 +128,16 @@ function leaved(data) {
     }
     else {
         remove_member(data);
+        showMessage(data.leaved_msg);
     }
 }
 
 function add_member(data) {
     if (data.member === state.me) {
+        return;
+    }
+    console.log($('r_' + data.member).length);
+    if ($('#r_'+data.member).length){
         return;
     }
     $(".members__list").append(create_member(data));
@@ -151,10 +161,6 @@ function create_member(data) {
                   <button id="s_${data.member}" class="members__ready">
                    ${r}
                   </button>
-                  <button onclick="remove(event,'${data.member}')"
-                          class="members__remove">
-                    Remove
-                    </button>
                 </div>
             </li>`
     );
@@ -165,12 +171,15 @@ function remove_member(data) {
     if (data.was_ready) {
         state.members_ready -= 1;
     }
-
-    $('#members_joined').text(state.members_joined);
     state.members_joined -= 1;
+    $('#members_joined').text(state.members_joined);
+    if(data.member===state.me){
+        window.location.href = '/';
+    }
 }
 
 function ready(data) {
+    $('.backdrop').addClass('hide-backdrop');
     if (data.state) {
         document.getElementById("s_" + data.member).innerText = "READY";
         state.members_ready += 1;
@@ -204,6 +213,7 @@ function game_changed(data) {
 
 $('.room__start').click(function (e) {
     animateButton(e.target);
+    $('.backdrop').removeClass('hide-backdrop');
     let msg = {
         action: "change_ready"
     };

@@ -15,7 +15,7 @@ const regitration_form = document.querySelector("#form");
     removeLoader($);
     initSlider($);
     initFormHandler($);
-    initFormValidation($);
+    // initFormValidation($);
     setRotate($);
     $(window).bind("resize", function () {
       screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
@@ -64,13 +64,13 @@ function initFormHandler($) {
   });
 
   $('#btn_register').click(function (e) {
-    let username = $('#id_username').val();
-    if (username.length < 5 | username.length > 8) {
-      showMessage('username should be greater than 5 and less than 8 charecters');
-      e.preventDefault();
-      return;
-    }
-    if ($('#id_password1').val() !== $('#id_password').val()) {
+    // let username = $('#id_username').val();
+    // if (username.length < 5 | username.length > 8) {
+    //   showMessage('username should be greater than 5 and less than 8 charecters');
+    //   e.preventDefault();
+    //   return;
+    // }
+    if ($('#id_password1').val() !== $('#id_password2').val()) {
       showMessage("password doesn't match");
       e.preventDefault();
       return;

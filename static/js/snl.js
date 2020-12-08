@@ -27,6 +27,7 @@ var t = 12;
   $(document).ready(function () {
     scrollBottom();
     setRotate($);
+    exitHandlers($)
     $(window).bind("resize", function () {
       screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
       // 90 means landscape, 0 means portrait
@@ -35,6 +36,17 @@ var t = 12;
   });
 })(jQuery);
 
+function exitHandlers($){
+  $('.winners__room').on('click',function(e){
+    e.preventDefault()
+    console.log('here--------');
+    window.location.href = '/room/'+ ROOM_NO;
+  })
+  $('.winners__exit').on('click',function(e){
+    e.preventDefault()
+    window.location.href = '/'
+  })
+}
 function setRotate($) {
   screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
   // 90 means landscape, 0 means portrait
@@ -61,8 +73,13 @@ function soundIntrupt(sound) {
 }
 
 function game_over(data) {
-  if (data.leave) {
-    addLeaveMessage(data.leaved_by);
+  if (data.leaved) {
+    leaved(data);
+    addLeaveMessage(data.leaved_msg);
+    if(data.memeber===me){   //member denotes who leaved the game
+      window.location.href = "/";
+      return;
+    }
   }
   else if (data.win) {
     move(data, data.position);
@@ -72,13 +89,9 @@ function game_over(data) {
     showWinners(data.winners);
 
     setTimeout(function () {
-      if (data.host === me) {
-        window.location.href = "/room/" + data.url;
-      } else {
-        window.location.href = "/join/" + data.url;
-      }
-    }, 20000);
-    let t = 20;
+      window.location.href = "/room/" + ROOM_NO;
+    }, 5000);
+    let t = 5;
     let win_timer = setInterval(() => {
       if (t < 1) {
         clearInterval(win_timer);
@@ -91,11 +104,12 @@ function game_over(data) {
 
 }
 
-function addLeaveMessage(player) {
-  $('.winners').append(`<div class='winners__leaved'>${player} Leaved the Game</div>`);
+function addLeaveMessage(leaved_msg) {
+  $('.winners__leaved').text(leaved_msg);
 }
 
 function showWinners(winners) {
+  $('.backdrop').removeClass('hide-backdrop');
   data = "";
   winners.forEach((winner) => {
     data += getWinner(winner);
@@ -119,12 +133,16 @@ function getWinner(winner) {
 }
 
 function leaved(data) {
-  if (data.leaved_by === me) {
-    return (window.location.href = "/");
+  if (data.member === me) {
+    if(data.remove){
+      // this code may not be needed
+      notification('you are removed');
+    }
+    return (window.location.href = "/room/"+ROOM_NO);
   }
-  $(`#p_${data.leaved_by}`).addClass("disable");
-  $(`#l_${data.leaved_by}`).addClass("disable");
-  notification(`game leaved by ${data.leaved_by}`);
+  $(`#p_${data.member}`).addClass("disable");
+  $(`#l_${data.member}`).addClass("disable");
+  notification(data.leaved_msg);
   if (data.start) {
     started(data);
   }
@@ -153,26 +171,30 @@ function message(data) {
 }
 
 function player_not_joined(data) {
-  if (me in data.players) {
-    $('.loading_msg').html('Unable to Connect, Redirecting to room');
-    setTimeout(function () {
-      window.location.href = "/room/" + ROOM_NO;
-    }, 2000);
-    return;
-  }
-  let msg_player = '';
   data.players.forEach(player => {
-    $('.l_' + player).addClass('disable');
-    msg_player += ' ' + player;
+    if (player.member===me){
+      $('.loading_msg').html('Unable to Connect, Redirecting to room in 2sec');
+      setTimeout(function () {
+        window.location.href = "/room/" + ROOM_NO;
+      }, 2000);
+      return;
+    }
+    if ($(".spiner").length) {
+      // remove spinner
+      $(".spiner").remove();
+    }
+    setTimeout(function(){      
+    $(`#p_${player.member}`).addClass("disable");
+    $(`#l_${player.member}`).addClass("disable");    
+    online({'member':player.member,'status':false});
+    notification(player.member+' was removed due to network');
+    },1000);
+
   });
-  if (start) {
-    notification(msg_player + 'are unable to join');
-    return started(data);
-  }
-  notification(msg_player + ' leaved, You Win. Redirecting to room');
+  notification('Redirecting to room in 4sec');
   setTimeout(function () {
     window.location.href = "/room/" + ROOM_NO;
-  }, 2000);
+  }, 4000);
 }
 
 
@@ -205,7 +227,24 @@ $("#message").on("keyup", (event) => {
 
 });
 
+function remove_players(players){
+  players.forEach(player => {
+    if (player.member === me){
+      window.location.href='/';
+      return;
+    }
+    $(`#p_${player.member}`).addClass("disable");
+    $(`#l_${player.member}`).addClass("disable");    
+    online({'member':player.member,'status':false});
+    notification(player.member+' was removed due to network');
+  });
+}
+
 function leave() {
+  clearTimer();
+  clearTimeout(change_player_timer);  
+  $('.backdrop').removeClass('hide-backdrop');
+  $('.backdrop').append('<div class="loader"></div>');
   socket.send(
     JSON.stringify({
       action: "leave",
@@ -236,9 +275,8 @@ function startTimer() {
   }, 1000);
 }
 
-
 function showState() {
-  // it will show and state everytime
+  // it will show state 
   current_player.innerText = state.current_player;
 }
 
@@ -253,18 +291,19 @@ function started(data) {
   state = data.state;
   showState();
   startTimer();
-  if (state.current_player == me) {
+  if (state.current_player === me) {
     sent = false;
     change_player_timer = setTimeout(function () {
       sent = true;
       change_player();
     }, state.time * 1000);
+    // setTimeout(play,2000);
   } else {
     no_respose_timer = setTimeout(function () {
       socket.send(
         JSON.stringify({ action: "check_state", old_state: state })
       );
-    }, state.time * 1000 + 4000);
+    }, state.time * 1000 + 2000 + player_no*1000);
   }
 }
 

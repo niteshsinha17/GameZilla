@@ -150,7 +150,7 @@ function player_not_joined(data) {
         Players not joined
       </div>
     </div>
-    <div class="winner__loading">Redirecting to room in 2 sec..</div>
+    <div class="winner__loading">Redirecting to room in 5sec..</div>
     </div>`;
     showGameOver(msg);
     setTimeout(function () {
@@ -254,6 +254,8 @@ $("#message").on("keyup", (event) => {
 });
 
 function leave() {
+  $('.backdrop').removeClass('hide-backdrop');
+  $('.backdrop').append('<div class="loader"></div>');
   socket.send(
     JSON.stringify({
       action: "leave",
@@ -414,8 +416,27 @@ function createWinMessage(data) {
     </div>
     wins the game
   </div>
-  <div class="winner__loading">Redirecting to room in 5 sec..</div>
+  <div class="winner__loading">Redirecting to room in 5sec..</div>
   </div>`;
+}
+function leaved(data){
+  let class_name = data.player === 'X' ? 'cross' : 'zero';
+  if(data.player_name===details.me){
+
+     window.location.href='/room/'+ROOM_NO;
+     return;
+  }
+  let msg = `<div class="winner">
+  <div class="winner__heading">Game Over</div>
+  <div class="winner__msg">
+    <div winner__icon>
+      <div class="box_${class_name}"></div>
+    </div>
+    leaved the game
+  </div>
+  <div class="winner__loading">Redirecting to room in 5sec..</div>
+  </div>`;
+    showGameOver(msg);
 }
 
 function createDrawMessage() {
@@ -428,7 +449,8 @@ function createDrawMessage() {
 }
 
 function showGameOver(msg) {
-  setTimeout(function () {
+  setTimeout(function () {    
+  $('.backdrop').removeClass('hide-backdrop');
     $('body').append(msg);
     soundIntrupt('sound_win');
     setTimeout(function () {

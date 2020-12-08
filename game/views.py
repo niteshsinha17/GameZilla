@@ -1,3 +1,4 @@
+import time
 from django.shortcuts import render, redirect
 # from account.models import User
 from django.contrib.auth.models import User
@@ -59,7 +60,10 @@ def host_room_view(request, sp_id):
         return redirect('join', sp_id=room.sp_id)
 
     if room.started:
-        return redirect(room.game_url)
+        member = Member.objects.filter(
+            member=user, room=room)[0]
+        if not member.leaved:
+            return redirect(room.game_url)
 
     # game is not started
     # check host is created or not as a member
@@ -79,6 +83,10 @@ def host_room_view(request, sp_id):
         member.save()
         room.members_joined += 1
         room.save()
+    if room.started:
+        # change memebers to show
+        members = list(members.filter(leaved=False))
+        members.append(member)
 
     state = room.get_state()
     state['me'] = user.username
@@ -123,10 +131,18 @@ def join_game(request, sp_id=None):
     created = True
     try:
         member = members.get(member=user)
+        if member.leaved:
+            messages.add_message(
+                request, messages.INFO, 'You have leaved the room, Wait for the gave to over')
+            return redirect('home')
         member.online = True
         member.save()
     except:
         created = False
+        if room.started:
+            messages.add_message(
+                request, messages.INFO, 'Game has already started')
+            return redirect('home')
 
     if created and room.started:
         return redirect(room.game_url)
@@ -141,7 +157,9 @@ def join_game(request, sp_id=None):
             room.save()
         else:
             # NO space available
-            return render(request, 'game/no_space.html')
+            messages.add_message(
+                request, messages.INFO, 'Room is Full')
+            return redirect('home')
 
     state = room.get_state()
     state['me'] = user.username
@@ -156,6 +174,7 @@ def join_game(request, sp_id=None):
 
 @login_required
 def join_room(request):
+    # join room through form
     sp_id = request.POST.get('sp-id')
     return redirect('join', sp_id=sp_id)
 
@@ -165,27 +184,35 @@ def leave(request, sp_id):
     try:
         room = Room.objects.get(sp_id=sp_id)
     except:
-        return
+        return HttpResponse(json.dumps({
+            'deleted': False,
+            'reason': 'Room is already deleted'
+        }))
     user = request.user
-    member = Member.objects.filter(room=room).get(member=user)
-
+    try:
+        member = Member.objects.filter(room=room).get(member=user)
+    except:
+        messages.add_message(
+            request, messages.INFO, 'No such room')
+        return redirect('home')
     if member.host:
         if room.started:
-            game = room.game.code
-            if game == 'SNL':
-                g = SNL.objects.get(game_id=sp_id)
-                if g.players.filter(online=False) == g.max_player:
+            '''
+            delete room if condition is satisfied
+            '''
+            game_code = room.game.code
+            if game_code == 'SNL':
+                game = SNL.objects.get(game_id=sp_id)
+                if game.players.filter(Q(online=False) | Q(disable=True) | Q(leaved=True)).count() == game.max_player:
                     room.delete()
                     return HttpResponse(json.dumps({
                         'deleted': True,
                         'reason': 'Room deleted!'
                     }))
-            elif game == "TAC":
-                print('here tac')
-                g = TAC.objects.get(game_id=sp_id)
-                if not g.zero_active and not g.cross_active:
+            elif game_code == "TAC":
+                game = TAC.objects.get(game_id=sp_id)
+                if not game.zero_active and not game.cross_active:
                     room.delete()
-                    print('del')
                     return HttpResponse(json.dumps({
                         'deleted': True,
                         'reason': 'Room deleted!'
@@ -196,9 +223,14 @@ def leave(request, sp_id):
             }))
 
         # room not started
+        # delete it
         try:
             room.delete()
-            leave_room(sp_id, user.username, remove_all=True)
+            msg = {
+                'action': 'leaved',
+                'member': 'all'
+            }
+            send_leave_msg(sp_id, msg)
 
         except:
             return HttpResponse(json.dumps({
@@ -209,93 +241,143 @@ def leave(request, sp_id):
         return HttpResponse(json.dumps({
             'deleted': True,
             'reason': 'Room deleted!'
-
         }))
     else:
-        msg = {}
-        # can move change krna hoga
-
         if room.started:
             if room.game.code == "SNL":
                 game = SNL.objects.get(room=room)
-            game.players_playing -= 1
-            if game.players_playing == 1:
-                game.winner_state += 1
-                player = game.players.filter(
-                    Q(entered=True) and Q(disable=False))
-                player = player[0]
-                player.rank = game.winner_state
-                player.save()
-                game.save()
-                players = game.players.filter(entered=True)
-                winners = [{'name': player.player.username,
-                            'rank': player.rank} for player in players]
-
-                room.game_url = ''
-                room.started = False
-                room.members_joined = game.players_playing
-                room.members_ready = game.players_playing
+                room = game.room
+                try:
+                    player = game.players.get(player=user)
+                except:
+                    member.leaved = True
+                    member.save()
+                    return HttpResponse(json.dumps({
+                        'deleted': True,
+                        'reason': 'You leaved the game'
+                    }))
+                if player.leaved:
+                    return HttpResponse(json.dumps({'deleted': False, 'reason': 'invalid player'}))
+                room.members_joined -= 1
+                room.members_ready -= 1
                 room.save()
-                msg['url'] = room.sp_id
+                if player.disable:
+                    # only remove from room and game
+                    player.leaved = True
+                    player.save()
+                    msg = {
+                        'action': 'leaved',
+                        'leaved_msg': user.username + ' leaved the game',
+                        'start': False, 'member': user.username,
+                        'was_ready': True
+                    }
+                    send_leave_msg(sp_id, msg)
+                    return HttpResponse(json.dumps({'deleted': True, 'reason': 'you leaved the room'}))
 
-                # delete game and member
-                game_id = game.game_id
-                game.delete()
-                member.delete()
-                msg['winners'] = winners
-                msg['action'] = 'game_over'
-                leave_game(game_id, msg)
-            else:
-                player = game.players.get(user=user)
-                player.disable = True
+                game.players_playing -= 1
+                member = Member.objects.filter(room=room).get(member=user)
+                member.leaved = True
                 player.leaved = True
+                member.save()
                 player.save()
-                game.save()
-                room.save()
-                msg = {
-                    'action': 'leaved',
-                    'player': user.username
-                }
-                leave_game(game.game_id, msg)
+                if game.players_playing == 1:
+                    # game over situation
+                    game.winner_state += 1
+                    player.rank = game.winner_state
+                    player.save()
+                    game.save()
+                    winners = [{'name': player.player.username,
+                                'rank': player.rank}
+                               for player in game.players.all()
+                               ]
+                    room.reset()
+                    game.delete()
+                    msg = {
+                        'action': 'game_over',
+                        'leaved': True,
+                        'leaved_msg': user.username + ' leaved the game',
+                        'winners': winners,
+                        'member': user.username,
+                        'was_ready': True,
+                        'state': game.room.get_state()
+                    }
+                    send_leave_msg(sp_id, msg)
+                elif game.current_player == user:
+                    players = game.players.filter(
+                        entered=True, disable=False, leaved=False)
+                    game.round += 1
+                    if game.current >= game.players_playing:
+                        game.current = 0
+                        game.current_player = players[0].player
+                    else:
+                        game.current_player = players[game.current].player
+                    game.time_stamp = time.time()
+                    game.save()
+                    msg = {
+                        'action': 'leaved',
+                        'leaved_msg': user.username + ' leaved the game',
+                        'start': True, 'state': game.get_new_state(),
+                        'member': user.username,
+                        'was_ready': True}
+                else:
+                    game.save()
+                    msg = {
+                        'action': 'leaved',
+                        'leaved_msg': user.username + ' leaved the game',
+                        'start': False, 'member': user.username,
+                        'was_ready': True
+                    }
+                send_leave_msg(sp_id, msg)
+                return HttpResponse(json.dumps({'deleted': True, 'reason': 'You leaved the room'}))
 
-            return HttpResponse(json.dumps({'deleted': True}))
+            elif room.game.code == 'TAC':
+                game = TAC.objects.get(game_id=sp_id)
+                if game.zero == user:
+
+                    game.room.reset()
+                    game.delete()
+                    msg = {
+                        'action': 'leaved',
+                        'player': 'O',
+                        'player_name': user.username,
+                        'member': user.username
+                    }
+                else:
+                    game.room.reset()
+                    game.delete()
+                    msg = {
+                        'action': 'leaved',
+                        'player': 'X',
+                        'player_name': user.username,
+                        'member': user.username
+                    }
+
+                send_leave_msg(sp_id, msg)
+                return HttpResponse(json.dumps({'deleted': True, 'reason': 'You leaved the room'}))
 
         # game not started
-        try:
-            member.delete()
-            room.members_joined -= 1
-            room.save()
-            leave_room(room.sp_id, user.username)
-        except:
-            return HttpResponse(json.dumps({
-                'deleted': False,
-                'reason': 'something went wrong'
-            }))
 
+        member = Member.objects.filter(room=room).get(member=user)
+
+        msg = {
+            'action': 'leaved',
+            'member': user.username,
+            'was_ready': member.ready,
+            'leaved_msg': user.username + ' leaved the room'
+        }
+        if member.ready:
+            room.members_ready -= 1
+        room.members_joined -= 1
+        room.save()
+        member.delete()
+        send_leave_msg(sp_id, msg)
         return HttpResponse(json.dumps({
-            'deleted': True
+            'deleted': True, 'reason': 'You leaved the room'
         }))
 
 
-def leave_room(room_id, username, remove_all=False):
-    channel_layer = get_channel_layer()
-    if remove_all is True:
-
-        data = {
-            'action': 'leaved',
-            'member': 'all',
-        }
-    else:
-        data = {
-            'action': 'leaved',
-            'member': username,
-        }
-    async_to_sync(channel_layer.group_send)(
-        room_id, {"type": "send_message", "text": json.dumps(data)})
-
-
-def leave_game(game_id, msg):
+def send_leave_msg(room_id, msg):
     channel_layer = get_channel_layer()
 
     async_to_sync(channel_layer.group_send)(
-        game_id, {"type": "send_message", "text": json.dumps(msg)})
+        room_id, {"type": "send_message", "text": json.dumps(msg)})

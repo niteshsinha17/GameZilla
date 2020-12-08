@@ -25,7 +25,7 @@ SECRET_KEY = '_4g93^tsa%t(@a##=5^0z+o!3=z2d*1x^s$0q^uky0hz_y7zie'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['127.0.0.1', 'gamezilla.fun']
 
 
 # Application definition

@@ -219,13 +219,19 @@ class TACConsumer(AsyncConsumer):
         if game.zero.username == username:
             game.room.reset()
             game.delete()
-            return {'action': 'leaved', 'winner': 'X'}
+            return {'action': 'leaved', 'player': 'O', 'player_name': username}
         else:
-            return {'action': 'leaved', 'winner': 'O'}
+            game.room.reset()
+            game.delete()
+            return {'action': 'leaved', 'player': 'X', 'player_name': username}
 
     @database_sync_to_async
     def check_started(self):
-        return TAC.objects.get(game_id=self.room_no).started
+        try:
+            game=TAC.objects.get(game_id=self.room_no)
+        except:
+            return False
+        return game .started
 
     @database_sync_to_async
     def can_enter(self, username):
@@ -235,7 +241,11 @@ class TACConsumer(AsyncConsumer):
     @ database_sync_to_async
     def check_run(self, username):
         user = User.objects.get(username=username)
-        game = TAC.objects.get(game_id=self.room_no)
+        try:
+            game = TAC.objects.get(game_id=self.room_no)
+        except:
+            return False
+       
 
         if not game.zero_entered and not game.cross_entered:
             if user == game.zero:

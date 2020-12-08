@@ -15,7 +15,6 @@ class SNL(models.Model):
     max_player = models.IntegerField(default=0)
     current_player = models.ForeignKey(
         User, on_delete=CASCADE, null=True, blank=True)
-
     current = models.IntegerField(null=True, blank=True)
     winner_state = models.IntegerField(default=0)
     players_playing = models.IntegerField(default=0)
@@ -23,6 +22,7 @@ class SNL(models.Model):
     players_disabled = models.IntegerField(default=0)
     time_stamp = models.FloatField(null=True, blank=True)
     round = models.IntegerField(null=True, blank=True)
+    last_check = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.game_id
@@ -31,9 +31,10 @@ class SNL(models.Model):
         self.started = True
         self.round = 0
         self.time_stamp = time.time()
+        self.last_check = time.time()
         self.current = random.randint(0, self.players_playing-1)
         players = self.players.filter(
-            Q(entered=True) & Q(disable=False) & Q(leaved=False))
+            entered=True, disable=False, leaved=False)
         self.current_player = players[self.current].player
         self.save()
 
@@ -50,7 +51,26 @@ class SNL(models.Model):
                 }
 
     def match_state(self, state):
-        return (time.time()-self.time_stamp > 12) and state['round'] == self.round
+        return ((time.time() - self.last_check) > 12) and (time.time()-self.time_stamp > 12) and state['round'] == self.round
+
+    def get_not_joined_players(self):
+        players = []
+        members = Member.objects.filter(room=self.room)
+        room = self.room
+        for player in self.players.filter(entered=False):
+            players.append({'member': player.player.username,
+                            'leaved_msg': 'some players left due to network', 'leaved': True, 'was_ready': True})
+            member = members.get(member=player.player)
+            player.leaved = True
+            member.leaved = True
+            player.online = False
+            if not member.host:
+                room.members_joined -= 1
+                room.members_ready -= 1
+            member.save()
+            player.save()
+            room.save()
+        return players
 
 
 class SNLPlayer(models.Model):
@@ -66,14 +86,21 @@ class SNLPlayer(models.Model):
     rank = models.IntegerField(null=True, blank=True)
     color = models.CharField(max_length=10, default='', choices=COLORS)
     online = models.BooleanField(default=True)
+    player_no = models.IntegerField(null=True, blank=True)
     leaved = models.BooleanField(default=False)
     disable = models.BooleanField(default=False)
     position = models.IntegerField(default=1)
     can_move = models.BooleanField(default=False)
     entered = models.BooleanField(default=False)
+    skip_chance = models.IntegerField(default=1)
 
     def __str__(self):
         return self.player.username + self.game.game_id
+
+    def set_chance(self):
+        if self.skip_chance == 0:
+            self.skip_chance = 1
+            self.save()
 
 
 class SNLMessage(models.Model):

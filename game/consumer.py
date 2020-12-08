@@ -205,19 +205,24 @@ class RoomConsumer(AsyncConsumer):
     @database_sync_to_async
     def leave(self, username, is_host):
         if is_host:
-            Room.objects.get(sp_id=self.room_no).delete()
+            room = Room.objects.get(sp_id=self.room_no)
+            if room.started:
+                return {'action': 'room_error', 'error_msg': "You can't leave right now"}
+            room.delete()
             return {'action': 'leaved', 'member': 'all'}
         else:
             user = User.objects.get(username=username)
             room = Room.objects.get(sp_id=self.room_no)
             members = Member.objects.filter(room=room)
             member = members.get(member=user)
+            msg = {'action': 'leaved', 'member': username, 'leaved_msg': username+' leaved the room',
+                   'was_ready': member.ready}
             if member.ready:
                 room.members_ready -= 1
             room.members_joined -= 1
             room.save()
             member.delete()
-        return {'action': 'leaved', 'member': username}
+        return msg
 
     @database_sync_to_async
     def add_player(self, username):
@@ -235,6 +240,11 @@ class RoomConsumer(AsyncConsumer):
     def remove_member(self, msg):
         user = User.objects.get(username=msg['member'])
         room = Room.objects.get(sp_id=self.room_no)
+        if room.started:
+            return{
+                'action': 'room_error',
+                'error_msg': "can't remove right now"
+            }
         members = Member.objects.filter(room=room)
         member = members.get(member=user)
         data = {'action': 'member_removed', 'member': msg['member']}
@@ -273,6 +283,11 @@ class RoomConsumer(AsyncConsumer):
     @database_sync_to_async
     def start_game(self):
         room = Room.objects.get(sp_id=self.room_no)
+        if room.started:
+            return{
+                'action': 'room_error',
+                'error_msg': 'Game has already started'
+            }
         if room.members_joined <= 1:
             return {'action': 'started',
                     'can_start': False,
@@ -296,7 +311,7 @@ class RoomConsumer(AsyncConsumer):
             game.save()
             for i in range(game.max_player):
                 player = SNLPlayer(
-                    game=game, player=members[i].member, member=members[i], color=colors[i])
+                    player_no=int(i), game=game, player=members[i].member, member=members[i], color=colors[i])
                 player.save()
             url = '/SNL/'+game.game_id+'/'
         elif code == 'TAC':

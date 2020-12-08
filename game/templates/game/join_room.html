@@ -10,6 +10,7 @@
 <div class="spiner">
   <div class="loader"></div>
 </div>
+<div class="backdrop hide-backdrop"><div class="loader"></div></div>
 <div class="room">
   <button
     class="room__start {% if me.ready %} {% else %} ready {% endif %} d-100"
@@ -28,8 +29,14 @@
       <span>{{selected_game.game_name}}</span>
     </h2>
     <span>
-      <button id="detail_icon">
+      <button onclick="window.location.reload()" id="reload_icon">
+        <img src="{% static 'icons/reload.png' %}" alt="" />
+      </button>
+      <button onclick="window.location.href='/'" id="home_icon">
         <img src="{% static 'icons/home.png' %}" alt="" />
+      </button>
+      <button id="detail_icon">
+        <img src="{% static 'icons/detail.png' %}" alt="" />
       </button>
       <button id="setting">
         <img src="{% static 'icons/setting.png' %}" alt="" />
@@ -52,11 +59,13 @@
 
           <li class="detail__item">
             Members Joined :
-            <span class="bold">{{room.members_joined}}</span>
+            <span id="members_joined" class="bold"
+              >{{room.members_joined}}</span
+            >
           </li>
           <li class="detail__item">
             Max Players :
-            <span id="max_member" class="bold">{{room.game.max_players}}</span>
+            <span id="max_member" class="bold">{{room.game.max_player}}</span>
           </li>
           <li class="detail__item">
             Min Players :
@@ -71,15 +80,15 @@
         <h3 class="members__heading">Players Joined</h3>
         <ul class="members__list">
           {% for member in members %}
-          <li id="r_{{member}}" class="members__item">
+          <li id="r_{{member.member.username}}" class="members__item">
             <div class="members_name">
-              {{member}}
+              {{member.member.username}}
               <span class="online">
                 {% if member.online %} online {% else %} offline {% endif %}
               </span>
             </div>
             <div class="members__btns">
-              <button id="s_{{member}}" class="members__ready">
+              <button id="s_{{member.member.username}}" class="members__ready">
                 {% if member.ready %} READY {% else%} NOT READY {% endif %}
               </button>
             </div>

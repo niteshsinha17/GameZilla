@@ -42,5 +42,6 @@ def game(request, game_id):
     context['room_id'] = json.dumps({'room_id': game_id})
     context['me'] = json.dumps(
         {'me': user.username})
+    context['player_no'] = player.player_no
 
     return render(request, 'snakeAndLadder/game.html', context)

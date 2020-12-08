@@ -159,7 +159,9 @@
   }
 }
 
-#detail_icon {
+#detail_icon,
+#home_icon,
+#reload_icon {
   cursor: pointer;
   margin-right: 10px;
   background: none;
@@ -387,6 +389,7 @@
 .members__ready {
   padding: 4px 15px;
   border-radius: 26px;
+  text-transform: lowercase;
   border: 1px solid;
   color: black;
   width: 110px;

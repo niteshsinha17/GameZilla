@@ -2,7 +2,6 @@ from django.db import models
 # from account.models import User
 from django.contrib.auth.models import User
 from django.db.models.deletion import CASCADE
-from django.db.models import Q
 from django.db.models.signals import pre_save
 from django.template.defaultfilters import slugify
 import string
@@ -32,8 +31,9 @@ class RoomManager(models.Manager):
 
 class MemberManager(models.Manager):
     def get_joined_rooms(self, user):
+        print(user.username)
         return [member.room for member in
-                self.filter(Q(member=user) & Q(host=False) & Q(leaved=False))]
+                self.filter(member=user, host=False, leaved=False)]
 
 
 class Room(models.Model):
@@ -58,24 +58,31 @@ class Room(models.Model):
         super(Room, self).save(*args, **kwargs)
 
     def get_state(self):
-        return {'game_code': self.game.code,
-                'max_members': self.max_members,
-                'members_joined': self.members_joined,
-                'members_ready': self.members_ready,
-                'room_no': self.sp_id
-                }
+        return {
+            'game_code': self.game.code,
+            'max_members': self.max_members,
+            'members_joined': self.members_joined,
+            'members_ready': self.members_ready,
+            'room_no': self.sp_id
+        }
+
     def reset(self):
         self.members_ready = 1
         self.started = False
         self.game_url = ''
-        self.save()
-
         members = Member.objects.filter(room=self)
         for member in members:
+            if member.leaved and not member.host:
+                member.delete()
+                continue
             if not member.host:
                 member.ready = False
+            elif member.leaved:
+                # host who has leaved
+                member.leaved = False
             member.online = False
             member.save()
+        self.save()
 
 
 class Member(models.Model):
@@ -92,7 +99,7 @@ class Member(models.Model):
     objects = MemberManager()
 
     def __str__(self):
-        return self.member.username
+        return self.member.username + self.room.sp_id
 
 
 class Report(models.Model):

@@ -12,16 +12,14 @@ from .models import SNL, SNLPlayer, SNLMessage
 from game.models import Member
 import time
 import random
-from django.db.models import Q
 
 
 async def run(room_no):
-
     '''
     take 15 sec time so that all player will join
     and start game when all are joined
 
-    if some player is left dont join them
+    if some player is left dont join, remove them
 
     '''
 
@@ -46,19 +44,21 @@ def start(room_no):
     except:
         return {
             'action': 'error',
-            'error_msg': 'Sorry, something went wrong, Refersh or restart the game'
+            'error_msg': 'Sorry, something went wrong, Refersh or restart the game',
         }
 
-    if game.players_playing == 1:
+    if game.players_playing <= 1:
+        players = game.get_not_joined_players()
         game.delete()
         game.room.reset()
+        print('-----------------')
         return {
             'action': 'player_not_joined',
+            'players': players
         }
     game.start()
     data = {'action': 'started', 'state': game.get_new_state()}
-    data['not_entered_players'] = [
-        player.username for player in game.players.filter(entered=False)]
+    data['not_entered_players'] = game.get_not_joined_players()
     return data
 
 
@@ -84,7 +84,7 @@ class SNLConsumer(AsyncConsumer):
 
         '''
         check weather game is started or not if started
-        dont accept if the player hasnt joined earlier
+        dont accept if the player has not joined earlier
         if game not started accept the request
 
         '''
@@ -119,7 +119,7 @@ class SNLConsumer(AsyncConsumer):
                 '''
 
             else:
-                state = await self.get_state()
+                state = await self.get_state(username)
                 await self.send({
                     "type": "websocket.accept"
                 })
@@ -174,6 +174,7 @@ class SNLConsumer(AsyncConsumer):
     async def websocket_receive(self, event):
         username = self.scope['user'].username
         msg = json.loads(event['text'])
+        print(msg['action'], username)
 
         if msg['action'] == 'change_player':
             state = await self.change_player()
@@ -186,6 +187,7 @@ class SNLConsumer(AsyncConsumer):
 
         elif msg['action'] == 'leave':
             state = await self.leave(username)
+
         elif msg['action'] == 'message':
             state = await self.message(username, msg['message'])
 
@@ -225,7 +227,10 @@ class SNLConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def offline(self, username, status):
-        game = SNL.objects.get(game_id=self.room_no)
+        try:
+            game = SNL.objects.get(game_id=self.room_no)
+        except:
+            return
         user = User.objects.get(username=username)
         player = game.players.get(player=user)
         player.online = status
@@ -236,70 +241,95 @@ class SNLConsumer(AsyncConsumer):
         game = SNL.objects.get(game_id=self.room_no)
         room = game.room
         user = User.objects.get(username=username)
-        player = game.players.get(player=user)
-        member = Member.objects.filter(room=room).get(member=user)
-        player.leaved = True
-        player.online = False
-        game.players_playing -= 1
-        room.members_joined -= 1
-        room.members_ready -= 1
-        member = Member.objects.filter(room=room).get(member=user)
-        member.leaved = True
-        player.save()
-        member.save()
-        players = game.players.filter(
-            Q(entered=True) & Q(disable=False) & Q(leaved=False))
-        if game.players_playing == 1:
-            game.winner_state += 1
-            players[0].rank = game.winner_state
-            players[0].disable = True
-            players[0].save()
-            winners = [{'name': player.player.username,
-                        'rank': player.rank}for player in game.players.filter(entered=True)]
-            game.delete()
-            room.game_url = ''
+        if room.created_by != user:
             room.members_joined -= 1
             room.members_ready -= 1
-            room.started = False
             room.save()
-            member.delete()
+        player = game.players.get(player=user)
+        player.leaved = True
+        member = Member.objects.filter(room=room).get(member=user)
+        member.leaved = True
+        member.save()
+        player.save()
+        if player.disable:
+            return{'action': 'leaved',
+                   'member': username,
+                   'start': False,
+                   'leaved_msg': username+' leaved the game',
+                   'was_ready': True
+                   }
+        game.players_playing -= 1
+        players = game.players.filter(
+            entered=True, disable=False, leaved=False)
+        if game.players_playing == 1:
+            game.winner_state += 1
+            winner = players[0]
+            winner.rank = game.winner_state
+            winner.disable = True
+            winner.save()
+            winners = [{'name': player.player.username,
+                        'rank': player.rank} for player in game.players.all()]
+            game.room.reset()
+            game.delete()
+            state = game.room.get_state()
+            state['me'] = room.created_by.username
             return {
                 'action': 'game_over',
                 'leaved': True,
-                'leaved_by': username,
+                'leaved_msg': username + ' leaved the game',
                 'winners': winners,
-                'return_url': '/room/' + room.sp_id
+                'member': username,   # member denotes who leaved the game
+                'was_ready': True,
+                'state': state
             }
 
         if game.current_player == user:
             game.round += 1
-            if game.current == game.players_playing:
+            if game.current >= game.players_playing:
                 game.current = 0
                 game.current_player = players[0].player
             else:
                 game.current_player = players[game.current].player
             game.time_stamp = time.time()
             game.save()
-            state = game.get_new_state()
-            return{'action': 'leaved', 'leaved_by': username, 'start': True, 'state': state}
+            return{
+                'action': 'leaved',
+                'leaved_msg': username + ' leaved the game',
+                'start': True,
+                'state': game.get_new_state(),
+                'member': username,
+                'was_ready': True
+            }
         else:
-            return{'action': 'leaved', 'leaved_by': username, 'start': False}
+            game.save()
+            return{'action': 'leaved',
+                   'leaved_msg': username + ' leaved the game',
+                   'start': False,
+                   'member': username,
+                   'was_ready': True
+                   }
 
     @database_sync_to_async
     def check_started(self):
-        return SNL.objects.get(game_id=self.room_no).started
+        try:
+            game = SNL.objects.get(game_id=self.room_no)
+        except:
+            return False
+        return game.started
 
     @database_sync_to_async
     def check_entered(self, username):
         user = User.objects.get(username=username)
         game = SNL.objects.get(game_id=self.room_no)
-        players = SNLPlayer.objects.filter(game=game)
-        return players.get(player=user).entered
+        return game.players.get(player=user).entered
 
     @ database_sync_to_async
     def check_run(self, username):
         user = User.objects.get(username=username)
-        game = SNL.objects.get(game_id=self.room_no)
+        try:
+            game = SNL.objects.get(game_id=self.room_no)
+        except:
+            return False
         player = game.players.get(player=user)
 
         if not player.entered:
@@ -319,11 +349,14 @@ class SNLConsumer(AsyncConsumer):
             return False
 
     @database_sync_to_async
-    def get_state(self):
+    def get_state(self, username):
         game = SNL.objects.get(game_id=self.room_no)
         state = game.get_state()
+        user = User.objects.get(username=username)
+        player = game.players.get(player=user)
+        player.set_chance()
         if state['time'] < 0:
-            # resume game
+            # restart game
             game.time_stamp = time.time()
             game.save()
             state = game.get_new_state()
@@ -338,41 +371,105 @@ class SNLConsumer(AsyncConsumer):
         user = User.objects.get(username=username)
         msg = SNLMessage(user=user, game=game, text=text)
         msg.save()
-        return {'action': 'message', 'sender': username, 'msg': text}
+        return {'action': 'message',
+                'sender': username,
+                'msg': text
+                }
 
     @database_sync_to_async
     def check_state(self, state):
         game = SNL.objects.get(game_id=self.room_no)
         if game.match_state(state):
-            game.current += 1
-            if game.current == game.players_playing:
+            forced_remove = {
+                'remove': False
+            }
+            player = game.players.get(player=game.current_player)
+            if player.skip_chance == 1:
+                notification = player.player.username + \
+                    ' has skipped this chance, will be removed if skips 2nd'
+            if player.skip_chance == 0:
+                # remove player forcefully
+                notification = player.player.username + ' has been romoved'
+                player.leaved = True
+                game.players_playing -= 1
+                room = game.room
+                member = Member.objects.filter(
+                    member=player.player, room=room)[0]
+                member.leaved = True
+                member.save()
+                if room.created_by != member.member:
+                    room.members_joined -= 1
+                    room.members_ready -= 1
+                game.save()
+                room.save()
+                if game.players_playing == 1:
+                    players = game.players.all()
+                    game.winner_state += 1
+                    winner = players.filter(entered=True,
+                                            disable=False, leaved=False)[0]
+                    winner.rank = game.winner_state
+                    winner.disable = True
+                    winner.save()
+                    winners = [{'name': player.player.username,
+                                'rank': player.rank} for player in players]
+                    game.room.reset()
+                    game.delete()
+                    return {
+                        'action': 'game_over',
+                        'leaved': True,
+                        'leaved_msg': player.player.username + ' was removed',
+                        'winners': winners,
+                        'member': player.player.username,
+                        'was_ready': True,
+                        'state': game.room.get_state()
+                    }
+                forced_remove = {
+                    'remove': True,
+                    'member': player.player.username,
+                    'was_ready': True,
+                }
+            forced_remove['leaved_msg'] = notification
+            player.skip_chance -= 1
+            player.save()
+            if player.skip_chance != -1:
+                game.current += 1
+            if game.current >= game.players_playing:
                 game.current = 0
-            game.current_player = SNLPlayer.objects.filter(Q(entered=True) and Q(
-                disable=False) and Q(leaved=False))[game.current].player
+            game.current_player = game.players.filter(entered=True,
+                                                      disable=False,
+                                                      leaved=False)[game.current].player
             game.round += 1
             game.time_stamp = time.time()
+            game.last_check = time.time()
             game.save()
-            msg = {'action': 'set_state', 'error': True,
-                   'state': game.get_new_state()}
+            msg = {'action': 'set_state',
+                   'error': True,
+                   'state': game.get_new_state()
+                   }
+            msg.update(forced_remove)
         else:
-            msg = {'action': 'set_state', 'error': False}
+            msg = {
+                'action': 'set_state',
+                'error': False
+            }
         return msg
 
     @database_sync_to_async
     def change_player(self):
         game = SNL.objects.get(game_id=self.room_no)
         players = game.players.filter(
-            Q(entered=True) & Q(disable=False) & Q(leaved=False))
+            entered=True, disable=False, leaved=False)
         game.current += 1
-        if game.current == game.players_playing:
+        if game.current >= game.players_playing:
             game.current = 0
         game.current_player = players[game.current].player
         game.round += 1
         game.time_stamp = time.time()
         game.save()
-        data = {'action': 'player_changed',
-                'state': game.get_new_state()
-                }
+        data = {
+            'action': 'player_changed',
+            'state': game.get_new_state()
+        }
 
         return data
 
@@ -386,13 +483,14 @@ class SNLConsumer(AsyncConsumer):
         game = SNL.objects.get(game_id=self.room_no)
         if game.current_player.username != username:
             return {
-                'action': 'error', 'error_msg': 'wait for your turn'
+                'action': 'error',
+                'error_msg': 'wait for your turn'
             }
         game.round += 1
         game.time_stamp = time.time()
         user = User.objects.get(username=username)
         players = game.players.filter(
-            Q(entered=True) & Q(disable=False) & Q(leaved=False))
+            entered=True, disable=False, leaved=False)
         try:
             player = players.get(player=user)
         except:
@@ -410,11 +508,12 @@ class SNLConsumer(AsyncConsumer):
                 player.position += n
                 if n != 6:
                     # move and change player
-                    msg = {'action': 'move',
-                           'player': game.current_player.username,
-                           'number': n,
-                           'position': player.position, 'win': False
-                           }
+                    msg = {
+                        'action': 'move',
+                        'player': game.current_player.username,
+                        'number': n,
+                        'position': player.position, 'win': False
+                    }
 
                     if player.position == 100:
                         msg['win'] = True
@@ -427,12 +526,14 @@ class SNLConsumer(AsyncConsumer):
                         game.players_disabled += 1
                         player.save()
                         players = game.players.filter(
-                            Q(entered=True) & Q(disable=False) & Q(leaved=False))
+                            entered=True, disable=False, leaved=False)
                         if game.players_playing == 1:
                             # game over
                             msg['action'] = 'game_over'
                             winners = [{'name': player.player.username,
-                                        'rank': player.rank} for player in game.players.filter(entered=True)]
+                                        'rank': player.rank}
+                                       for player in game.players.all()
+                                       ]
 
                             room = game.room
                             room.reset()
@@ -443,7 +544,7 @@ class SNLConsumer(AsyncConsumer):
                             msg['leaved'] = False
                             return msg
 
-                        if game.current == game.players_playing:
+                        if game.current >= game.players_playing:
                             game.current = 0
                             game.current_player = players[0].player
                         else:
@@ -451,7 +552,7 @@ class SNLConsumer(AsyncConsumer):
 
                     else:
                         game.current += 1
-                        if game.current == game.players_playing:
+                        if game.current >= game.players_playing:
                             game.current = 0
                         game.current_player = players[game.current].player
 
@@ -462,15 +563,20 @@ class SNLConsumer(AsyncConsumer):
                 else:
                     # move and dont change player because he got 6
 
-                    msg = {'action': 'move', 'player': game.current_player.username,
-                           'number': n, 'position': player.position, 'win': False}
+                    msg = {
+                        'action': 'move',
+                        'player': game.current_player.username,
+                        'number': n,
+                        'position': player.position,
+                        'win': False
+                    }
 
                     if player.position == 100:
                         player.position -= n
                         msg['action'] = 'cant_move'
                         msg['error_msg'] = 'Invalid move, Try again in next turn'
                         game.current += 1
-                        if game.current == game.players_playing:
+                        if game.current >= game.players_playing:
                             game.current = 0
                         game.current_player = players[game.current].player
                     game.save()
@@ -503,27 +609,38 @@ class SNLConsumer(AsyncConsumer):
                     game.current = 0
                 game.current_player = players[game.current].player
                 game.save()
-                msg = {'action': 'cant_move',
-                       'error_msg': 'Step out of limit',
-                       'number': n,
-                       'player': username,
-                       'state': game.get_new_state()}
+                msg = {
+                    'action': 'cant_move',
+                    'error_msg': 'Step out of limit',
+                    'number': n,
+                    'player': username,
+                    'state': game.get_new_state()
+                }
                 return msg
         else:
             # check if got six or not
             if n == 6:
                 player.can_move = True
                 player.save()
-                msg = {'action': 'open', 'state': game.get_new_state(),
-                       'number': n, 'player': username}
+                msg = {
+                    'action': 'open',
+                    'state': game.get_new_state(),
+                    'number': n,
+                    'player': username
+                }
             else:
                 # change player
                 game.current += 1
                 if game.current == game.players_playing:
                     game.current = 0
                 game.current_player = game.players.filter(
-                    Q(entered=True) & Q(disable=False) & Q(leaved=False))[game.current].player
+                    entered=True, disable=False, leaved=False)[game.current].player
                 game.save()
-                msg = {'action': 'cant_move', 'player': username, 'state': game.get_new_state(),
-                       'number': n, 'error_msg': 'get 6 first to open'}
+                msg = {
+                    'action': 'cant_move',
+                    'player': username,
+                    'state': game.get_new_state(),
+                    'number': n,
+                    'error_msg': 'get 6 first to open'
+                }
             return msg

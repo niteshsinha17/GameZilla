@@ -11,6 +11,7 @@
   <div class="loader"></div>
   <div class="loading_msg">Tryig to Connect.. Please wait</div>
 </div>
+<div class="backdrop hide-backdrop"></div>
 <div class="chat">
   <div class="chat__messages">
     {% for message in messages %}
@@ -24,7 +25,7 @@
   </div>
   <div class="chat__send">
     <input id="message" class="chat__input" type="text" placeholder="Message" />
-    <button onclick="send()" class="chat__send-btn">
+    <button onclick="sendMessage()" class="chat__send-btn">
       <img src="{% static 'icons/send.png' %}" alt="" />
     </button>
   </div>
@@ -121,43 +122,42 @@
       </ul>
     </div>
   </div>
-</div>
+  <ul class="SNL__notification"></ul>
 
-<ul class="SNL__notification"></ul>
-
-<div class="exit">
-  <div class="exit__wrapper">
-    <h3 class="exit__heading">Are you Confirm?</h3>
-    <ul class="exit__list">
-      <li class="exit__item">
-        <button onclick="leave()" class="leave exit__btn">
-          <img src="{% static 'icons/correct.png' %}" alt="" />
-        </button>
-        <div class="exit__option">YES</div>
-      </li>
-      <li class="exit__item">
-        <button class="stay exit__btn">
-          <img src="{% static 'icons/cross.png' %}" alt="" />
-        </button>
-        <div class="exit__option">NO</div>
-      </li>
-    </ul>
-    <p class="exit__para">
-      If Yes, You will not be able to join this game again
-    </p>
-  </div>
-</div>
-<div class="winners">
-  <div class="winner_animate_div">
-    <div class="winner__heading">Game Over</div>
-    <div class="winners__wrapper"></div>
-    <div class="winners__btns">
-      <a href="" class="winners__room"
-        >Go back to room (<span class="winners__time"></span>)
-      </a>
-      <a href="" class="winners__exit">Exit</a>
+  <div class="exit">
+    <div class="exit__wrapper">
+      <h3 class="exit__heading">Are you Confirm?</h3>
+      <ul class="exit__list">
+        <li class="exit__item">
+          <button onclick="leave()" class="leave exit__btn">
+            <img src="{% static 'icons/correct.png' %}" alt="" />
+          </button>
+          <div class="exit__option">YES</div>
+        </li>
+        <li class="exit__item">
+          <button class="stay exit__btn">
+            <img src="{% static 'icons/cross.png' %}" alt="" />
+          </button>
+          <div class="exit__option">NO</div>
+        </li>
+      </ul>
+      <p class="exit__para">
+        If Yes, You will not be able to join this game again
+      </p>
     </div>
-    <div class="winners__leaved">Leaved the Game</div>
+  </div>
+  <div class="winners">
+    <div class="winner_animate_div">
+      <div class="winner__heading">Game Over</div>
+      <div class="winners__wrapper"></div>
+      <div class="winners__btns">
+        <a href="" class="winners__room"
+          >Go back to room (<span class="winners__time"></span>)
+        </a>
+        <a href="" class="winners__exit">Exit</a>
+      </div>
+      <div class="winners__leaved"></div>
+    </div>
   </div>
 </div>
 
@@ -222,6 +222,7 @@
   // constants
   const players = JSON.parse("{{players_json|escapejs}}");
   const me = JSON.parse("{{me|escapejs}}")["me"];
+  const player_no = JSON.parse("{{player_no|escapejs}}");
 
   // timer variables
   var opened, timer_, stop_timer_, no_respose_timer, change_player_timer;
@@ -303,22 +304,20 @@
     p.style.bottom = `${y * defaultChange + defaultBottom}px`;
   }
 
+  function clearTimers() {
+    clearTimeout(no_respose_timer);
+    clearTimer();
+  }
+
   socket.onmessage = function (e) {
-    if ($(".spiner").length) {
-      // remove spinner
-      $(".spiner").remove();
-    }
     const data = JSON.parse(e["data"]);
-    if (
-      (data["action"] != "message" && data["action"] != "online") ||
-      (data["action"] != "leaved" && data["start"] == false)
-    ) {
-      clearTimeout(no_respose_timer);
-      clearTimer();
+    console.log(data.action);
+    if (data.action === "game_over") {
+      clearTimeout(change_player_timer);
     }
-    console.log(data["action"]);
     switch (data["action"]) {
       case "move":
+        clearTimers();
         showDice(data["number"]);
         move(data, data["position"]);
         started(data);
@@ -328,45 +327,74 @@
         break;
 
       case "double_move":
+        clearTimers();
         showDice(data["number"]);
         double_move(data);
         started(data);
         break;
 
       case "player_changed":
+        clearTimers();
         started(data);
         break;
 
       case "open":
+        clearTimers();
         showDice(data["number"]);
         open_player(data);
         break;
 
       case "started":
+        clearTimers();
+        if ($(".spiner").length) {
+          // remove spinner
+          $(".spiner").remove();
+        }
+        if (data.not_entered_players) {
+          remove_players(data.not_entered_players);
+        }
         started(data);
         break;
 
       case "game_over":
+        clearTimers();
         showDice(data["number"]);
-        setTimeout(game_over(data), 3000);
 
+        setTimeout(function () {
+          game_over(data);
+        }, 2000);
         break;
       case "leaved":
+        if (data.start) {
+          clearTimers();
+        }
         leaved(data);
         break;
 
       case "set_state":
-        if (data["error"]) {
+        if (data.error) {
+          clearTimers();
+          if (data.remove) {
+            leaved(data);
+          } else {
+            notification(data.leaved_msg);
+          }
           started(data);
         }
         break;
 
       case "again_entered":
+        if ($(".spiner").length) {
+          // remove spinner
+          $(".spiner").remove();
+        }
+        clearTimers();
         initialization();
         started(data);
         break;
 
       case "cant_move":
+        clearTimers();
         cant_move(data);
         break;
 
@@ -375,7 +403,7 @@
         break;
 
       case "player_not_joined":
-        player_not_joined();
+        player_not_joined(data);
         break;
 
       case "message":

@@ -10,6 +10,7 @@
 <div class="spiner">
   <div class="loader"></div>
 </div>
+<div class="backdrop hide-backdrop"><div class="loader"></div></div>
 <div class="room">
   <button class="room__start d-100">Start</button>
   <button class="room__leave d-100">LEAVE</button>
@@ -24,8 +25,14 @@
       <span>{{selected_game.game_name}}</span>
     </h2>
     <span>
-      <button id="detail_icon">
+      <button onclick="window.location.reload()" id="reload_icon">
+        <img src="{% static 'icons/reload.png' %}" alt="" />
+      </button>
+      <button onclick="window.location.href='/'" id="home_icon">
         <img src="{% static 'icons/home.png' %}" alt="" />
+      </button>
+      <button id="detail_icon">
+        <img src="{% static 'icons/detail.png' %}" alt="" />
       </button>
       <button id="setting">
         <img src="{% static 'icons/setting.png' %}" alt="" />
@@ -68,20 +75,21 @@
         <h3 class="members__heading">Players Joined</h3>
         <ul class="members__list">
           {% for member in members %}
-          <li id="r_{{member}}" class="members__item">
+          <li id="r_{{member.member.username}}" class="members__item">
             <div class="members_name">
-              {{member}}
+              {{member.member.username}}
               <span class="online">
-                {% if member.online %} online {% else %} offline {% endif %}
+                {% if room.started %} in game {% else %} {% if member.online %}
+                online {% else %} offline {% endif %} {% endif %}
               </span>
             </div>
             <div class="members__btns">
-              <button id="s_{{member}}" class="members__ready">
+              <button id="s_{{member.member.username}}" class="members__ready">
                 {% if member.ready %} READY {% else%} NOT READY {% endif %}
               </button>
               {% if member.host%} {% else %}
               <button
-                onclick="remove(event,'{{member}}')"
+                onclick="remove(event,'{{member.member.username}}')"
                 class="members__remove"
               >
                 Remove
@@ -155,7 +163,7 @@
   const socket = new ReconnectingWebSocket(endpoint);
 
   socket.onmessage = function (e) {
-    var data = JSON.parse(e.data);
+    const data = JSON.parse(e.data);
     switch (data["action"]) {
       case "add_member":
         add_member(data);
@@ -166,6 +174,9 @@
         break;
 
       case "started":
+        if (data.not_entered_players) {
+          remove_players(data.not_entered_players);
+        }
         started(data);
         break;
 
@@ -173,13 +184,29 @@
         ready(data);
         break;
 
+      case "room_error":
+        showMessage(data.error_msg);
+        break;
+
       case "game_changed":
         game_changed(data);
+        break;
+
+      case "game_over":
+        if (data.leaved) {
+          leaved(data);
+          state = data.state;
+        }
         break;
 
       case "online":
         online(data["member"], data["status"]);
         break;
+
+      case "set_state":
+        if (data.remove) {
+          leaved(data);
+        }
 
       case "leaved":
         leaved(data);
@@ -206,6 +233,6 @@
 <script src="{% static 'js/resize.js' %}"></script>
 <script src="{% static 'js/host.js' %}"></script>
 {% endblock scripts %}
-<!-- r_{{memeber}}   === button to remove any member((it is for id of btn)) -->
+<!-- r_{{member}}   === button to remove any member((it is for id of btn)) -->
 
 <!-- s_{{member}} === this id is used to show ready state of member -->

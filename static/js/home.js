@@ -17,6 +17,7 @@ var screenOrientation;
     initAjaxCalls($);
     removeMessages($);
     setRotate($);
+    initGameHandlet($);
     $(window).bind("resize", function () {
       screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
       // 90 means landscape, 0 means portrait
@@ -25,6 +26,11 @@ var screenOrientation;
   });
 })(jQuery);
 
+function initGameHandlet($){
+  $('.g-card').on('click',function(){
+    $('.backdrop').removeClass('hide-backdrop');
+  });
+}
 function setRotate($) {
   screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
   // 90 means landscape, 0 means portrait
@@ -89,7 +95,6 @@ function initAjaxCalls($) {
 
       let data_ = JSON.parse(data);
       if (data_.deleted) {
-        console.log('deleted');
         $("#room_" + id).remove();
       }
       else {

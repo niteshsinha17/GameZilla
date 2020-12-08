@@ -11,6 +11,7 @@
   <div class="loader"></div>
   <div class="loading_msg">Tryig to Connect.. Please wait</div>
 </div>
+<div class="backdrop hide-backdrop"></div>
 <div style="background: #c9d0d4" class="chat">
   <div class="chat__messages">
     {% for message in messages %}
@@ -24,7 +25,11 @@
   </div>
   <div class="chat__send">
     <input id="message" class="chat__input" type="text" placeholder="Message" />
-    <button style="background: white" onclick="send()" class="chat__send-btn">
+    <button
+      style="background: white"
+      onclick="sendMessage()"
+      class="chat__send-btn"
+    >
       <img src="{% static 'icons/send.png' %}" alt="" />
     </button>
   </div>
@@ -143,29 +148,29 @@
       </ul>
     </div>
   </div>
-</div>
-<ul class="TAC__notification"></ul>
+  <ul class="TAC__notification"></ul>
 
-<div class="exit">
-  <div class="exit__wrapper">
-    <h3 class="exit__heading">Are you Confirm?</h3>
-    <ul class="exit__list">
-      <li class="exit__item">
-        <button onclick="leave()" class="leave exit__btn">
-          <img src="{% static 'icons/correct.png' %}" alt="" />
-        </button>
-        <div class="exit__option">YES</div>
-      </li>
-      <li class="exit__item">
-        <button class="stay exit__btn">
-          <img src="{% static 'icons/cross.png' %}" alt="" />
-        </button>
-        <div class="exit__option">NO</div>
-      </li>
-    </ul>
-    <p class="exit__para">
-      If Yes, You will not be able to join this game again
-    </p>
+  <div style="background: #d1faff" class="exit">
+    <div class="exit__wrapper">
+      <h3 style="color: #2196f3" class="exit__heading">Are you Confirm?</h3>
+      <ul class="exit__list">
+        <li class="exit__item">
+          <button onclick="leave()" class="leave exit__btn">
+            <img src="{% static 'icons/correct.png' %}" alt="" />
+          </button>
+          <div class="exit__option">YES</div>
+        </li>
+        <li class="exit__item">
+          <button class="stay exit__btn">
+            <img src="{% static 'icons/cross.png' %}" alt="" />
+          </button>
+          <div class="exit__option">NO</div>
+        </li>
+      </ul>
+      <p class="exit__para">
+        If Yes, You will not be able to join this game again
+      </p>
+    </div>
   </div>
 </div>
 
@@ -221,12 +226,7 @@
   const socket = new ReconnectingWebSocket(endpoint);
 
   socket.onmessage = function (e) {
-    
     const data = JSON.parse(e.data);
-    if ($(".spiner").length && data.action !=='online' ) {
-      // remove spinner
-      $(".spiner").remove();
-    }
     if (
       (data.action != "message" && data.action != "online") ||
       (data.action != "leaved" && data.start == false)
@@ -240,6 +240,10 @@
         break;
 
       case "started":
+        if ($(".spiner").length) {
+          // remove spinner
+          $(".spiner").remove();
+        }
         started(data);
         break;
 
@@ -264,6 +268,10 @@
         break;
 
       case "again_entered":
+        if ($(".spiner").length) {
+          // remove spinner
+          $(".spiner").remove();
+        }
         started(data);
         break;
 

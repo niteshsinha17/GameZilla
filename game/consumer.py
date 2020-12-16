@@ -119,10 +119,6 @@ class RoomConsumer(AsyncConsumer):
                 "type": "websocket.disconnect"
             })
 
-        await self.send({
-            "type": "websocket.disconnect"
-        })
-
         data = await self.online(username, False)
         await self.channel_layer.group_send(
             self.room_no, {
@@ -130,6 +126,10 @@ class RoomConsumer(AsyncConsumer):
                 "text": json.dumps(data)
             }
         )
+
+        await self.send({
+            "type": "websocket.disconnect"
+        })
 
     async def send_message(self, event):
         await self.send({

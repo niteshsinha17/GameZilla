@@ -8,6 +8,7 @@
   }
 </style>
 {% endblock links %} {% block body %}
+
 <div class="rotate">
   <p>Please turn on screen rotation and use phone in landscape mode</p>
 </div>
@@ -82,6 +83,25 @@
       </li>
 
       {% endfor %} {% else %} No room {% endif %}
+      <li style="margin-top: 10px" class="navigation__sub-item">
+        <div style="position: relative; margin-top: 15px" class="mark">
+          <p class="mark__name">By - NITESH SINHA</p>
+          <ul class="mark__list">
+            <li class="mark__item">
+              <a
+                href="https://www.linkedin.com/in/nitesh-sinha-a15499170/"
+                target="_blank"
+                ><img src="{% static 'icons/linkedin.png' %}" alt=""
+              /></a>
+            </li>
+            <li class="mark__item">
+              <a href="https://github.com/niteshsinha17" target="_blank"
+                ><img src="{% static 'icons/git.png' %}" alt=""
+              /></a>
+            </li>
+          </ul>
+        </div>
+      </li>
     </ul>
   </div>
 </div>

@@ -177,10 +177,6 @@ class TACConsumer(AsyncConsumer):
 
         username = self.scope['user'].username
 
-        await self.send({
-            "type": "websocket.disconnect"
-        })
-
         await self.offline(username, False)
         await self.channel_layer.group_send(
             self.room_no, {
@@ -192,6 +188,10 @@ class TACConsumer(AsyncConsumer):
                         })
             }
         )
+
+        await self.send({
+            "type": "websocket.disconnect"
+        })
 
     async def send_message(self, event):
         await self.send({
@@ -228,7 +228,7 @@ class TACConsumer(AsyncConsumer):
     @database_sync_to_async
     def check_started(self):
         try:
-            game=TAC.objects.get(game_id=self.room_no)
+            game = TAC.objects.get(game_id=self.room_no)
         except:
             return False
         return game .started
@@ -245,7 +245,6 @@ class TACConsumer(AsyncConsumer):
             game = TAC.objects.get(game_id=self.room_no)
         except:
             return False
-       
 
         if not game.zero_entered and not game.cross_entered:
             if user == game.zero:

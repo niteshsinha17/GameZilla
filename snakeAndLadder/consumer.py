@@ -200,10 +200,6 @@ class SNLConsumer(AsyncConsumer):
 
         username = self.scope['user'].username
 
-        await self.send({
-            "type": "websocket.disconnect"
-        })
-
         await self.offline(username, False)
         await self.channel_layer.group_send(
             self.room_no, {
@@ -215,6 +211,10 @@ class SNLConsumer(AsyncConsumer):
                         })
             }
         )
+
+        await self.send({
+            "type": "websocket.disconnect"
+        })
 
     async def send_message(self, event):
         await self.send({

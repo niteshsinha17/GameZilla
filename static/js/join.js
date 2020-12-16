@@ -1,13 +1,13 @@
 /* jshint browser: true */
 /*jshint esversion: 6 */
 const link =
-    window.location.protocol + window.location.host + "/join/" + ROOM_NO;
+    window.location.protocol + '\\' + window.location.host + "/join/" + ROOM_NO;
 const inviteMessage = `Hello, I have joined this game on GameZilla. Click on the bellow to join it. ${link}
         Game Id:  ${ROOM_NO}`;
-
+var canRefresh = true;
 const bg_games = document.querySelectorAll(".g-card__img");
 const error_ = document.querySelector(".error");
-
+var rotate_value = 0;
 (function ($) {
     // "use strict";
     $(document).ready(function () {
@@ -35,6 +35,19 @@ function setRotate($) {
         $('.rotate').addClass('rotate-hide');
     }
 }
+
+$('#reload_icon').on('click',function(){
+    if (!canRefresh){
+        return;
+    }   
+    canRefresh=false;    
+    rotate_value+=360;
+    window.location.reload();
+    $('#reload_icon img').css({'transform':'rotate('+rotate_value+'deg)'});
+    setTimeout(function(){
+        canRefresh=true;
+    },2000);
+});
 
 function addInviteMessage($) {
     $('.room').append(

@@ -1,15 +1,16 @@
 /* jshint browser: true */
 /*jshint esversion: 6 */
 const link =
-    window.location.protocol + window.location.host + "/join/" + ROOM_NO;
+    window.location.protocol + '\\' + window.location.host + "/join/" + ROOM_NO;
 const inviteMessage = `Hello, I welcome you to play game with me on GameZilla. Click on the bellow to join it. ${link}
         Game Id:  ${ROOM_NO}`;
 
+var canRefresh = true;
 const bg_games = document.querySelectorAll(".g-card__img");
 const room = document.querySelector(".room__bg");
 const error_ = document.querySelector(".error");
 const members = document.querySelector(".members__list");
-
+var rotate_value = 0;
 (function (
     $) {
     // "use strict";
@@ -39,6 +40,20 @@ function setRotate($) {
         $('.rotate').addClass('rotate-hide');
     }
 }
+
+$('#reload_icon').on('click',function(){
+    if (!canRefresh){
+        return;
+    }   
+    canRefresh=false;    
+    rotate_value+=360;
+    window.location.reload();
+    $('#reload_icon img').css({'transform':'rotate('+rotate_value+'deg)'});
+    setTimeout(function(){
+        canRefresh=true;
+    },2000);
+});
+
 function addInviteMessage($) {
     $('.room').append(
         `<textarea class="link_message" cols="10" rows="10"></textarea>

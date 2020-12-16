@@ -30,6 +30,7 @@
 
 .room__game_detail img {
   height: 20px;
+  transition-duration: 1.5s;
 }
 
 .room .container {
@@ -184,6 +185,7 @@
   transition-duration: 1s;
   background: none;
   border: none;
+  margin-right: 10px;
   transition-timing-function: ease;
 }
 
@@ -415,7 +417,6 @@
   .members__item {
     font-size: 20px;
     width: 500px;
-    margin: 30px 0px;
     font-weight: 500;
   }
   .members__btns {
@@ -434,6 +435,11 @@
   }
 }
 
+@media (min-height: 420px) {
+  .members__item {
+    margin: 30px 0px;
+  }
+}
 .setting_active {
   transform: rotate(45deg) !important;
 }
@@ -468,4 +474,38 @@
   font-size: 10px;
   font-weight: 200;
   margin-left: 10px;
+}
+
+/* room messages */
+
+#chat {
+  position: relative;
+  background: transparent;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.room__msg {
+  position: absolute;
+  top: 35px;
+  width: 100px;
+  color: white;
+  right: -7px;
+}
+
+.room__msg_list {
+  list-style: none;
+  font-size: 12px;
+}
+
+.room__msg_item {
+  padding: 5px 7px;
+  text-align: right;
+  /* background: black; */
+  border-bottom: 1px solid #ffffff3d;
+}
+
+.room__msg_item:hover {
+  opacity: 0.6;
 }

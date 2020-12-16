@@ -110,6 +110,26 @@ class Report(models.Model):
     time = models.DateTimeField(auto_now_add=True)
 
 
+class RoomMessageManager(models.Manager):
+    def get_host_messages(self):
+        return self.filter(host=True)
+
+    def get_player_messages(self):
+        return self.filter(host=False)
+
+
+class RoomMessage(models.Model):
+    msg = models.CharField(max_length=150)
+    host = models.BooleanField()
+    objects = RoomMessageManager()
+
+    class Meta:
+        unique_together = ['msg', 'host']
+
+    def __str__(self):
+        return self.msg
+
+
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 

@@ -16,7 +16,7 @@ from django.contrib.auth import authenticate
 
 class LoginForm(forms.Form):
     username = forms.CharField(
-        max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'login__input', 'placeholder': 'Username','id':'username'}))
+        max_length=50, required=True, widget=forms.TextInput(attrs={'class': 'login__input', 'placeholder': 'Username', 'id': 'username'}))
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'login__input', 'placeholder': 'Password'}))
 
@@ -45,7 +45,7 @@ class RegistrationForm(forms.Form):
         attrs={'class': 'register__input', 'placeholder': 'Confirm Password'}))
 
     def clean_username(self):
-        username = self.cleaned_data['username'].lower()
+        username = self.cleaned_data['username']
         r = User.objects.filter(username=username)
         if r.count():
             raise ValidationError("Username already exists")
@@ -68,21 +68,21 @@ class RegistrationForm(forms.Form):
         return user
 
 
-class GuestRegisterationForm(forms.Form):
-    username = forms.CharField(max_length=50, required=True)
-    password = forms.CharField(widget=forms.PasswordInput)
-    confirm_password = forms.CharField(widget=forms.PasswordInput)
+# class GuestRegisterationForm(forms.Form):
+#     username = forms.CharField(max_length=50, required=True)
+#     password = forms.CharField(widget=forms.PasswordInput)
+#     confirm_password = forms.CharField(widget=forms.PasswordInput)
 
-    def clean(self):
-        super().clean()
-        data = self.cleaned_data
+#     def clean(self):
+#         super().clean()
+#         data = self.cleaned_data
 
-        if data['password'] != data['confirm_password']:
-            self.add_error('confirm_password', "Password doesn't match")
+#         if data['password'] != data['confirm_password']:
+#             self.add_error('confirm_password', "Password doesn't match")
 
-        u = User.objects.filter(username=data['username'])
-        if u:
-            self.add_error('username', 'This username is taken')
+#         u = User.objects.filter(username=data['username'])
+#         if u:
+#             self.add_error('username', 'This username is taken')
 
 
 # def clean(self):

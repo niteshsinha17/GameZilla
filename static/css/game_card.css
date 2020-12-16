@@ -131,3 +131,12 @@
 .join_dropdown-active {
   bottom: 20%;
 }
+
+@media (min-width: 680px) {
+  .join_dropdown {
+    padding: 76px 33px;
+  }
+  .join_dropdown-active {
+    bottom: 30%;
+  }
+}

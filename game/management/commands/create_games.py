@@ -34,7 +34,7 @@ class Command(BaseCommand):
                              max_player=game['max_player'])
                 _game.save()
                 _game.img.save(game['img'], File(
-                    open(self.path+'\\game_images\\'+game['img'], 'rb')))
+                    open(self.path+'/'+game['img'], 'rb')))
                 self.result.append(game['name'] + ' created ')
         for msg in self.result:
             self.stdout.write(self.style.SUCCESS(msg))

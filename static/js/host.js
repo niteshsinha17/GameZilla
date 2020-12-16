@@ -1,7 +1,7 @@
 /* jshint browser: true */
 /*jshint esversion: 6 */
 const link =
-    window.location.protocol + '\\' + window.location.host + "/join/" + ROOM_NO;
+    window.location.protocol + '//' + window.location.host + "/join/" + ROOM_NO;
 const inviteMessage = `Hello, I welcome you to play game with me on GameZilla. Click on the bellow to join it. ${link}
         Game Id:  ${ROOM_NO}`;
 

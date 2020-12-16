@@ -65,6 +65,17 @@ function joinHandler($) {
       $('.join_dropdown').removeClass('join_dropdown-active');
     }
   });
+  $('#join_form').on('submit',function(e){
+    game_id = $('#id_input').val();
+    if(game_id.length !== game_id.split(" ").join('').length){
+      let m = document.createElement('div');
+      $(m).addClass('message');
+      $(m).text("invalid game id");
+      $("body").append(m);
+      removeMessage(m);
+      e.preventDefault();
+    }
+  });
 }
 
 function navigationBarHandler($) {

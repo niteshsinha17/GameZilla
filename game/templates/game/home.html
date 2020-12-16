@@ -137,7 +137,7 @@
     <img src="{% static 'icons/cross.png' %}" alt="" />
   </button>
   <h3 class="join_dropdown__heading">JOIN GAME</h3>
-  <form method="POST" action="{% url 'join_room' %}">
+  <form id="join_form" method="POST" action="{% url 'join_room' %}">
     {% csrf_token %}
     <input
       name="sp-id"

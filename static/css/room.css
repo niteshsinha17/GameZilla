@@ -185,7 +185,7 @@
   transition-duration: 1s;
   background: none;
   border: none;
-  margin-right: 10px;
+  /* margin-right: 10px; */
   transition-timing-function: ease;
 }
 

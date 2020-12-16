@@ -132,7 +132,7 @@
   bottom: 20%;
 }
 
-@media (min-width: 680px) {
+@media (min-width: 680px) and (min-height: 500px) {
   .join_dropdown {
     padding: 76px 33px;
   }

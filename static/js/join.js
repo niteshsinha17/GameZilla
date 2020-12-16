@@ -1,7 +1,7 @@
 /* jshint browser: true */
 /*jshint esversion: 6 */
 const link =
-    window.location.protocol + '\\' + window.location.host + "/join/" + ROOM_NO;
+    window.location.protocol + '//' + window.location.host + "/join/" + ROOM_NO;
 const inviteMessage = `Hello, I have joined this game on GameZilla. Click on the bellow to join it. ${link}
         Game Id:  ${ROOM_NO}`;
 var canRefresh = true;

@@ -2,7 +2,7 @@ import time
 from django.shortcuts import render, redirect
 # from account.models import User
 from django.contrib.auth.models import User
-from game.models import Game, Room, Member
+from game.models import Game, Room, Member, RoomMessage
 import json
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -93,6 +93,7 @@ def host_room_view(request, sp_id):
     context['games'] = Game.objects.all()
     context['selected_game'] = room.game
     context['members'] = members
+    # context['room_messages'] = RoomMessage.objects.get_host_messages()    #will be used in future
     context['state'] = json.dumps(state)
     context['room'] = room
     context['me'] = member

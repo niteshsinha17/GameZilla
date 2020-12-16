@@ -115,3 +115,43 @@ button {
     transform: rotate(360deg);
   }
 }
+
+/* mark */
+
+.mark {
+  position: fixed;
+  right: 10px;
+  z-index: 204;
+  display: flex;
+  justify-content: center;
+  bottom: 10px;
+  display: flex;
+  color: white;
+  padding: 4px;
+  background: #0000003d;
+  border-radius: 2px;
+  align-items: center;
+}
+
+.mark__item img {
+  height: 14px;
+}
+
+.mark__list {
+  display: flex;
+  width: 37px;
+  justify-content: space-between;
+  list-style: none;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.mark__item a {
+  cursor: pointer;
+}
+
+p.mark__name {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}

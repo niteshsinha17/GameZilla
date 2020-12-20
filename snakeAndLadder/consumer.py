@@ -253,7 +253,7 @@ class SNLConsumer(AsyncConsumer):
             return{'action': 'leaved',
                    'member': username,
                    'start': False,
-                   'leaved_msg': username+' leaved the game',
+                   'leaved_msg': username+' left the game',
                    'was_ready': True
                    }
         game.players_playing -= 1
@@ -274,7 +274,7 @@ class SNLConsumer(AsyncConsumer):
             return {
                 'action': 'game_over',
                 'leaved': True,
-                'leaved_msg': username + ' leaved the game',
+                'leaved_msg': username + ' left the game',
                 'winners': winners,
                 'member': username,   # member denotes who leaved the game
                 'was_ready': True,
@@ -301,7 +301,7 @@ class SNLConsumer(AsyncConsumer):
         else:
             game.save()
             return{'action': 'leaved',
-                   'leaved_msg': username + ' leaved the game',
+                   'leaved_msg': username + ' left the game',
                    'start': False,
                    'member': username,
                    'was_ready': True

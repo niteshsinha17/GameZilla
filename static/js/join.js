@@ -2,7 +2,7 @@
 /*jshint esversion: 6 */
 const link =
     window.location.protocol + '//' + window.location.host + "/join/" + ROOM_NO;
-const inviteMessage = `Hello, I have joined this game on GameZilla. Click on the bellow to join it. ${link}
+const inviteMessage = `Hello, I have joined this game on GameZilla. Click on the below link to join it. ${link}
         Game Id:  ${ROOM_NO}`;
 var canRefresh = true;
 const bg_games = document.querySelectorAll(".g-card__img");

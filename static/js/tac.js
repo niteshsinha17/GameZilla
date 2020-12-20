@@ -432,7 +432,7 @@ function leaved(data){
     <div winner__icon>
       <div class="box_${class_name}"></div>
     </div>
-    leaved the game
+    left the game
   </div>
   <div class="winner__loading">Redirecting to room in 5sec..</div>
   </div>`;

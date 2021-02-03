@@ -4,7 +4,7 @@
 
 ---
 
-Live at [gamezilla.fun](https://gamezilla.com)
+Live at [gamezilla.fun](https://gamezilla.fun)
 
 ---
 

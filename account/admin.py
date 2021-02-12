@@ -1,4 +1,4 @@
-# from django.contrib import admin
+from django.contrib import admin
 # from django.contrib.auth.admin import UserAdmin
 # from .models import User
 # from .forms import CustomUserCreationForm
@@ -21,3 +21,8 @@
 
 
 # admin.site.register(User, CustomUserAdmin)
+
+#ading profile of user
+from .models import Profile
+
+admin.site.register(Profile)

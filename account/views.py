@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from account.forms import *
 from django.core.exceptions import ValidationError
 # Create your views here.
-
+#for profile 
+from .models import Profile
 
 def register(request):
     user = request.user
@@ -48,6 +49,14 @@ def register(request):
     context['login_form'] = login_form
     context['show'] = show
     return render(request, 'account/register.html', context)
+
+
+def profile(request):
+    context={}
+    User_profile=get_object_or_404(Profile,user=request.user)
+    context["username"]=User_profile.user.username
+    context["email"]=User_profile.email
+    return render(request,'account/profile.html',context)
 
 
 def logout_(request):

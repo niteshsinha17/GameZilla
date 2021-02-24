@@ -84,7 +84,7 @@ Any One willing to contribute in this project and wants their games to be hosted
 on the gamezilla platform are welcomed.
 
 **_Please follow below points before creating any PR._**
-
+- Add upstream and always create new branch from ``upstream/development`` not from ``upstream/master``.
 - Run `./gamezilla-qa-format` after making all changes.
 - Format your JavaScript and CSS files with `prettier`.
 - Run `./run-checks`. Fixed errors shown in the terminal if any.

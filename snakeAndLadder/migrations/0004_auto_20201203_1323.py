@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('snakeAndLadder', '0003_snl_player_no'),
+        ("snakeAndLadder", "0003_snl_player_no"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='snl',
-            name='player_no',
+            model_name="snl",
+            name="player_no",
         ),
         migrations.AddField(
-            model_name='snlplayer',
-            name='player_no',
+            model_name="snlplayer",
+            name="player_no",
             field=models.IntegerField(blank=True, null=True),
         ),
     ]

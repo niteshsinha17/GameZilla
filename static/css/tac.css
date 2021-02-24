@@ -196,7 +196,7 @@
 
 .box_cross::before {
   background: #80deea;
-  content: "";
+  content: '';
   position: absolute;
   width: 0px;
   height: 4px;
@@ -210,7 +210,7 @@
 
 .box_cross::after {
   background: #80deea;
-  content: "";
+  content: '';
   position: absolute;
   width: 0px;
   height: 4px;

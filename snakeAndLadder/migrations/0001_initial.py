@@ -10,53 +10,138 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('game', '0001_initial'),
+        ("game", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SNL',
+            name="SNL",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('game_id', models.SlugField()),
-                ('started', models.BooleanField(default=False)),
-                ('max_player', models.IntegerField(default=0)),
-                ('current', models.IntegerField(blank=True, null=True)),
-                ('winner_state', models.IntegerField(default=0)),
-                ('players_playing', models.IntegerField(default=0)),
-                ('players_entered', models.IntegerField(default=0)),
-                ('players_disabled', models.IntegerField(default=0)),
-                ('time_stamp', models.FloatField(blank=True, null=True)),
-                ('round', models.IntegerField(blank=True, null=True)),
-                ('current_player', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('room', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='game.Room')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("game_id", models.SlugField()),
+                ("started", models.BooleanField(default=False)),
+                ("max_player", models.IntegerField(default=0)),
+                ("current", models.IntegerField(blank=True, null=True)),
+                ("winner_state", models.IntegerField(default=0)),
+                ("players_playing", models.IntegerField(default=0)),
+                ("players_entered", models.IntegerField(default=0)),
+                ("players_disabled", models.IntegerField(default=0)),
+                ("time_stamp", models.FloatField(blank=True, null=True)),
+                ("round", models.IntegerField(blank=True, null=True)),
+                (
+                    "current_player",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "room",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE, to="game.Room"
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='SNLPlayer',
+            name="SNLPlayer",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rank', models.IntegerField(blank=True, null=True)),
-                ('color', models.CharField(choices=[('RED', 'RED'), ('BLUE', 'BLUE'), ('YELLOW', 'YELLOW'), ('GREEN', 'GREEN')], default='', max_length=10)),
-                ('online', models.BooleanField(default=True)),
-                ('leaved', models.BooleanField(default=False)),
-                ('disable', models.BooleanField(default=False)),
-                ('position', models.IntegerField(default=1)),
-                ('can_move', models.BooleanField(default=False)),
-                ('entered', models.BooleanField(default=False)),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='players', to='snakeAndLadder.SNL')),
-                ('member', models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='game.Member')),
-                ('player', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("rank", models.IntegerField(blank=True, null=True)),
+                (
+                    "color",
+                    models.CharField(
+                        choices=[
+                            ("RED", "RED"),
+                            ("BLUE", "BLUE"),
+                            ("YELLOW", "YELLOW"),
+                            ("GREEN", "GREEN"),
+                        ],
+                        default="",
+                        max_length=10,
+                    ),
+                ),
+                ("online", models.BooleanField(default=True)),
+                ("leaved", models.BooleanField(default=False)),
+                ("disable", models.BooleanField(default=False)),
+                ("position", models.IntegerField(default=1)),
+                ("can_move", models.BooleanField(default=False)),
+                ("entered", models.BooleanField(default=False)),
+                (
+                    "game",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="players",
+                        to="snakeAndLadder.SNL",
+                    ),
+                ),
+                (
+                    "member",
+                    models.OneToOneField(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="game.Member",
+                    ),
+                ),
+                (
+                    "player",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='SNLMessage',
+            name="SNLMessage",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='message', to='snakeAndLadder.SNL')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                (
+                    "game",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="message",
+                        to="snakeAndLadder.SNL",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

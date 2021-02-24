@@ -11,41 +11,104 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('game', '0001_initial'),
+        ("game", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TAC',
+            name="TAC",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('game_id', models.SlugField()),
-                ('started', models.BooleanField(default=False)),
-                ('max_player', models.IntegerField(default=0)),
-                ('board', jsonfield.fields.JSONField(default=[[0, 0, 0], [0, 0, 0], [0, 0, 0]])),
-                ('current', models.IntegerField(blank=True, null=True)),
-                ('players_entered', models.IntegerField(default=0)),
-                ('time_stamp', models.FloatField(blank=True, null=True)),
-                ('round', models.IntegerField(blank=True, null=True)),
-                ('zero_active', models.BooleanField(default=False)),
-                ('zero_entered', models.BooleanField(default=False)),
-                ('cross_active', models.BooleanField(default=False)),
-                ('cross_entered', models.BooleanField(default=False)),
-                ('winning_chances', models.IntegerField(default=8)),
-                ('cross', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='cross', to=settings.AUTH_USER_MODEL)),
-                ('current_player', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('room', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='game.Room')),
-                ('zero', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='zero', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("game_id", models.SlugField()),
+                ("started", models.BooleanField(default=False)),
+                ("max_player", models.IntegerField(default=0)),
+                (
+                    "board",
+                    jsonfield.fields.JSONField(
+                        default=[[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+                    ),
+                ),
+                ("current", models.IntegerField(blank=True, null=True)),
+                ("players_entered", models.IntegerField(default=0)),
+                ("time_stamp", models.FloatField(blank=True, null=True)),
+                ("round", models.IntegerField(blank=True, null=True)),
+                ("zero_active", models.BooleanField(default=False)),
+                ("zero_entered", models.BooleanField(default=False)),
+                ("cross_active", models.BooleanField(default=False)),
+                ("cross_entered", models.BooleanField(default=False)),
+                ("winning_chances", models.IntegerField(default=8)),
+                (
+                    "cross",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cross",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "current_player",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "room",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE, to="game.Room"
+                    ),
+                ),
+                (
+                    "zero",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="zero",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='TACMessage',
+            name="TACMessage",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='message', to='ticTacToe.TAC')),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                (
+                    "game",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="message",
+                        to="ticTacToe.TAC",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

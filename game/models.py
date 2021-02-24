@@ -1,4 +1,5 @@
 from django.db import models
+
 # from account.models import User
 from django.contrib.auth.models import User
 from django.db.models.deletion import CASCADE
@@ -7,12 +8,13 @@ from django.template.defaultfilters import slugify
 import string
 from django.utils.text import slugify
 import random
+
 # Create your models here.
 
 
 class Game(models.Model):
     game_name = models.CharField(max_length=60)
-    img = models.ImageField(upload_to='images/', blank=True, null=True)
+    img = models.ImageField(upload_to="images/", blank=True, null=True)
     code = models.CharField(max_length=20, null=True, blank=True)
     max_player = models.IntegerField(null=True, blank=True)
     min_player = models.IntegerField(null=True, blank=True)
@@ -31,8 +33,9 @@ class RoomManager(models.Manager):
 
 class MemberManager(models.Manager):
     def get_joined_rooms(self, user):
-        return [member.room for member in
-                self.filter(member=user, host=False, leaved=False)]
+        return [
+            member.room for member in self.filter(member=user, host=False, leaved=False)
+        ]
 
 
 class Room(models.Model):
@@ -40,8 +43,7 @@ class Room(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
     time = models.TimeField(auto_now_add=True)
     date = models.DateField(auto_now_add=True)
-    created_by = models.ForeignKey(
-        User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     max_members = models.IntegerField(null=True, blank=True)
     members_joined = models.IntegerField(default=0)
     can_start = models.BooleanField(default=False)
@@ -58,17 +60,17 @@ class Room(models.Model):
 
     def get_state(self):
         return {
-            'game_code': self.game.code,
-            'max_members': self.max_members,
-            'members_joined': self.members_joined,
-            'members_ready': self.members_ready,
-            'room_no': self.sp_id
+            "game_code": self.game.code,
+            "max_members": self.max_members,
+            "members_joined": self.members_joined,
+            "members_ready": self.members_ready,
+            "room_no": self.sp_id,
         }
 
     def reset(self):
         self.members_ready = 1
         self.started = False
-        self.game_url = ''
+        self.game_url = ""
         members = Member.objects.filter(room=self)
         for member in members:
             if member.leaved and not member.host:
@@ -85,8 +87,7 @@ class Room(models.Model):
 
 
 class Member(models.Model):
-    room = models.ForeignKey(Room, on_delete=CASCADE,
-                             null=True, blank=True)
+    room = models.ForeignKey(Room, on_delete=CASCADE, null=True, blank=True)
     member = models.ForeignKey(User, on_delete=CASCADE)
     ready = models.BooleanField(default=False)
     host = models.BooleanField(default=False)
@@ -124,14 +125,14 @@ class RoomMessage(models.Model):
     objects = RoomMessageManager()
 
     class Meta:
-        unique_together = ['msg', 'host']
+        unique_together = ["msg", "host"]
 
     def __str__(self):
         return self.msg
 
 
 def random_string_generator(size=10, chars=string.ascii_lowercase + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
+    return "".join(random.choice(chars) for _ in range(size))
 
 
 def unique_slug_generator(instance, new_slug=None):
@@ -144,7 +145,8 @@ def unique_slug_generator(instance, new_slug=None):
 
     if slug_exit:
         new_slug = "{slug}-{randstr}".format(
-            slug=slug, randstr=random_string_generator(size=4))
+            slug=slug, randstr=random_string_generator(size=4)
+        )
         return unique_slug_generator(instance, new_slug=new_slug)
     return slug
 

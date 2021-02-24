@@ -24,23 +24,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', game_views.home, name='home'),
-    path('register/', include('account.urls')),
-    path('logout/', logout_, name='logout'),
-    path('report/', game_views.report, name='report'),
-    path('host/<str:game_code>/', game_views.host_game, name='host'),
-    path('room/<slug:sp_id>/', game_views.host_room_view, name='host_room'),
-    path('join/<slug:sp_id>/', game_views.join_game, name='join'),
-    path('join/', game_views.join_room, name='join_room'),
-    path('SNL/<slug:game_id>/', SNL_views.game),
-    path('TAC/<slug:game_id>/', TAC_views.game),
-    path('leave/<slug:sp_id>/', game_views.leave),
+    path("admin/", admin.site.urls),
+    path("", game_views.home, name="home"),
+    path("register/", include("account.urls")),
+    path("logout/", logout_, name="logout"),
+    path("report/", game_views.report, name="report"),
+    path("host/<str:game_code>/", game_views.host_game, name="host"),
+    path("room/<slug:sp_id>/", game_views.host_room_view, name="host_room"),
+    path("join/<slug:sp_id>/", game_views.join_game, name="join"),
+    path("join/", game_views.join_room, name="join_room"),
+    path("SNL/<slug:game_id>/", SNL_views.game),
+    path("TAC/<slug:game_id>/", TAC_views.game),
+    path("leave/<slug:sp_id>/", game_views.leave),
     # You MUST use an empty string as the URL prefix
-    path('', include('pwa.urls')),
-
+    path("", include("pwa.urls")),
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

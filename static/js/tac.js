@@ -14,7 +14,7 @@ var chat_open = false;
 var timer_, stop_timer_, no_respose_timer, change_player_timer;
 var unread = 0;
 var t = 12;
-var boxes = document.querySelectorAll('.TAC__box');
+var boxes = document.querySelectorAll(".TAC__box");
 (function ($) {
   // "use strict";
   $(document).ready(function () {
@@ -22,22 +22,20 @@ var boxes = document.querySelectorAll('.TAC__box');
     initialization();
     setRotate($);
     $(window).bind("resize", function () {
-      screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
+      screenOrientation = $(window).width() > $(window).height() ? 90 : 0;
       // 90 means landscape, 0 means portrait
       setRotate($);
     });
   });
 })(jQuery);
 
-
 function setRotate($) {
-  screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
+  screenOrientation = $(window).width() > $(window).height() ? 90 : 0;
   // 90 means landscape, 0 means portrait
   if (screenOrientation === 0) {
-    $('.rotate').removeClass('rotate-hide');
-  }
-  else {
-    $('.rotate').addClass('rotate-hide');
+    $(".rotate").removeClass("rotate-hide");
+  } else {
+    $(".rotate").addClass("rotate-hide");
   }
 }
 
@@ -51,7 +49,7 @@ function initialization() {
   }
 }
 
-$('.TAC__box').click(function (e) {
+$(".TAC__box").click(function (e) {
   // player click on box
   animateBox(e.target);
   if (state.current_player === details.me && !sent) {
@@ -59,44 +57,43 @@ $('.TAC__box').click(function (e) {
     let i = Math.floor(position / 3);
     let j = Math.floor(position % 3);
     if (board[i][j] !== 0) {
-      notification('Invalid Move');
+      notification("Invalid Move");
       soundIntrupt("sound_notification");
       return;
     }
     clearTimer();
     clearTimeout(change_player_timer);
     sent = false;
-    socket.send(JSON.stringify({
-      action: 'play',
-      i: i,
-      j: j
-    }));
+    socket.send(
+      JSON.stringify({
+        action: "play",
+        i: i,
+        j: j,
+      })
+    );
     if (details.is_zero) {
       addZero(e.target);
-    }
-    else {
+    } else {
       addCross(e.target);
     }
-  }
-  else {
-    notification('Wait for your Turn');
+  } else {
+    notification("Wait for your Turn");
     soundIntrupt("sound_notification");
     return;
   }
 });
 
 function addIcon(i, j) {
-  if (board[i][j] === 'Z') {
+  if (board[i][j] === "Z") {
     addZero(boxes[3 * i + j]);
-  }
-  else {
+  } else {
     addCross(boxes[3 * i + j]);
   }
 }
 
 function addZero(box) {
   $(box).html('<div class="box_zero" ></div>');
-  soundIntrupt('sound_circle');
+  soundIntrupt("sound_circle");
 }
 
 function addCross(box) {
@@ -113,9 +110,9 @@ function getIndex(box) {
 }
 
 function animateBox(box) {
-  $(box).css({ 'background': '#0000003d' });
+  $(box).css({ background: "#0000003d" });
   setTimeout(function () {
-    $(box).css({ 'background': 'transparent' });
+    $(box).css({ background: "transparent" });
   }, 200);
 }
 
@@ -127,22 +124,18 @@ function mark(data) {
   let position = data.i * 3 + data.j;
   if (details.is_zero) {
     addCross(boxes[position]);
-  }
-  else {
+  } else {
     addZero(boxes[position]);
   }
 }
 
 function player_not_joined(data) {
   if (data.player === details.me) {
-    $(".loading_msg").html(
-      "Unable to connect, redirecting to room in 2secs.."
-    );
+    $(".loading_msg").html("Unable to connect, redirecting to room in 2secs..");
     setTimeout(function () {
       window.location.href = "/room/" + ROOM_NO;
     }, 2000);
-  }
-  else {
+  } else {
     msg = `<div class="winner">
     <div class="winner__heading">Game Over</div>
     <div class="winner__msg">
@@ -166,7 +159,7 @@ function soundIntrupt(sound) {
   if (!music_stoped) {
     music.voloum = 0.01;
   }
-  $('#' + sound)[0].play();
+  $("#" + sound)[0].play();
   setTimeout(function () {
     if (!music_stoped) {
       music.voloum = 1;
@@ -176,9 +169,9 @@ function soundIntrupt(sound) {
 
 function online(data) {
   if (data.status) {
-    $("#l_" + data.player + ' .player__active').removeClass('offline');
+    $("#l_" + data.player + " .player__active").removeClass("offline");
   } else {
-    $("#l_" + data.player + ' .player__active').addClass('offline');
+    $("#l_" + data.player + " .player__active").addClass("offline");
   }
 }
 
@@ -205,13 +198,13 @@ function message(data) {
 
 function playersNotJoined(data) {
   if (data.player === details.me) {
-    $('.loading_msg').html('Unable to Connect, Redirecting to room in 2sec..');
+    $(".loading_msg").html("Unable to Connect, Redirecting to room in 2sec..");
     setTimeout(function () {
       window.location.href = "/room/" + ROOM_NO;
     }, 2000);
     return;
   }
-  let class_name = details.is_zero ? 'zero' : 'cross';
+  let class_name = details.is_zero ? "zero" : "cross";
   showGameOver(`<div class="winner">
   <div class="winner__heading">Game Over</div>
   <div class="winner__msg">
@@ -250,12 +243,11 @@ $("#message").on("keyup", (event) => {
       );
     }
   }
-
 });
 
 function leave() {
-  $('.backdrop').removeClass('hide-backdrop');
-  $('.backdrop').append('<div class="loader"></div>');
+  $(".backdrop").removeClass("hide-backdrop");
+  $(".backdrop").append('<div class="loader"></div>');
   socket.send(
     JSON.stringify({
       action: "leave",
@@ -300,9 +292,7 @@ function started(data) {
     }, state.time * 1000);
   } else {
     no_respose_timer = setTimeout(function () {
-      socket.send(
-        JSON.stringify({ action: "check_state", old_state: state })
-      );
+      socket.send(JSON.stringify({ action: "check_state", old_state: state }));
     }, state.time * 1000 + 4000);
   }
 }
@@ -319,7 +309,6 @@ function handle_sound(event) {
   } else {
     $(event.target).addClass("on");
   }
-
 }
 
 function handle_music(event) {
@@ -332,29 +321,26 @@ function handle_music(event) {
     $(event.target).removeClass("on");
   }
   music_stoped = !music_stoped;
-
 }
 
 function handle_exit(event) {
-  $('.exit').addClass("show_exit");
+  $(".exit").addClass("show_exit");
   soundIntrupt("sound_notification");
   animateBtn(event.target);
-
 }
 
 document.querySelector(".stay").addEventListener("click", function (e) {
-  $('.exit').removeClass("show_exit");
+  $(".exit").removeClass("show_exit");
 });
 
 function handle_chat(event) {
   chat_open = !chat_open;
   if (chat_open) {
     readMessage();
-    $('#message').focus();
+    $("#message").focus();
   }
   $(document.querySelector(".chat")).toggleClass("show_chat");
   animateBtn(event.target);
-
 }
 
 function scrollBottom() {
@@ -399,15 +385,14 @@ function game_over(data) {
   if (data.win) {
     markWinLine(data);
     msg = createWinMessage(data);
-  }
-  else {
+  } else {
     msg = createDrawMessage();
   }
   showGameOver(msg);
 }
 
 function createWinMessage(data) {
-  let class_name = board[data.i][data.j] === 'X' ? 'cross' : 'zero';
+  let class_name = board[data.i][data.j] === "X" ? "cross" : "zero";
   return `<div class="winner">
   <div class="winner__heading">Game Over</div>
   <div class="winner__msg">
@@ -419,12 +404,11 @@ function createWinMessage(data) {
   <div class="winner__loading">Redirecting to room in 5sec..</div>
   </div>`;
 }
-function leaved(data){
-  let class_name = data.player === 'X' ? 'cross' : 'zero';
-  if(data.player_name===details.me){
-
-     window.location.href='/room/'+ROOM_NO;
-     return;
+function leaved(data) {
+  let class_name = data.player === "X" ? "cross" : "zero";
+  if (data.player_name === details.me) {
+    window.location.href = "/room/" + ROOM_NO;
+    return;
   }
   let msg = `<div class="winner">
   <div class="winner__heading">Game Over</div>
@@ -436,7 +420,7 @@ function leaved(data){
   </div>
   <div class="winner__loading">Redirecting to room in 5sec..</div>
   </div>`;
-    showGameOver(msg);
+  showGameOver(msg);
 }
 
 function createDrawMessage() {
@@ -449,10 +433,10 @@ function createDrawMessage() {
 }
 
 function showGameOver(msg) {
-  setTimeout(function () {    
-  $('.backdrop').removeClass('hide-backdrop');
-    $('body').append(msg);
-    soundIntrupt('sound_win');
+  setTimeout(function () {
+    $(".backdrop").removeClass("hide-backdrop");
+    $("body").append(msg);
+    soundIntrupt("sound_win");
     setTimeout(function () {
       window.location.href = "/room/" + ROOM_NO;
     }, 5000);
@@ -461,8 +445,7 @@ function showGameOver(msg) {
 function markWinLine(data) {
   if (data.tilt) {
     addTiltLine(data);
-  }
-  else {
+  } else {
     addStLine(data);
   }
 }
@@ -472,32 +455,29 @@ function addStLine(data) {
   if (data.horizontal) {
     top = 70 * data.position + 35;
     left = 0;
-    $('.board').append(
+    $(".board").append(
       `<div style="left:${left}px; top:${top}px;" class='h-line'></div>
       
       `
     );
-  }
-  else {
+  } else {
     left = 70 * data.position + 35;
     top = 0;
-    $('.board').append(
+    $(".board").append(
       `<div style="left:${left}px; top:${top}px;"  class='v-line'></div>
       `
     );
   }
-
 }
 
 function addTiltLine(data) {
   if (data.position == 0) {
-    $('.board').append(
+    $(".board").append(
       `<div class='t-line-f-top'></div>
       `
     );
-  }
-  else {
-    $('.board').append(
+  } else {
+    $(".board").append(
       `<div class='t-line-f-bottom'></div>
       `
     );

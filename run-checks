@@ -1,0 +1,17 @@
+#!/bin/bash
+set -e
+
+echo 'Running checks'
+jshint static/js/*.js
+black --check ./
+
+
+#Below lines will be added later
+# runflake8() {
+#   flake8 && echo "SUCCESS: Flake8 check successful!" ||
+#     {
+#       echoerr "ERROR: Flake8 check failed!"
+#       FAILURE=1
+#     }
+# }
+# runflake8

@@ -6,19 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('game', '0001_initial'),
+        ("game", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='RoomMessage',
+            name="RoomMessage",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('msg', models.CharField(max_length=150)),
-                ('host', models.BooleanField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("msg", models.CharField(max_length=150)),
+                ("host", models.BooleanField()),
             ],
             options={
-                'unique_together': {('msg', 'host')},
+                "unique_together": {("msg", "host")},
             },
         ),
     ]

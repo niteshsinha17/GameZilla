@@ -27,33 +27,32 @@ var t = 12;
   $(document).ready(function () {
     scrollBottom();
     setRotate($);
-    exitHandlers($)
+    exitHandlers($);
     $(window).bind("resize", function () {
-      screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
+      screenOrientation = $(window).width() > $(window).height() ? 90 : 0;
       // 90 means landscape, 0 means portrait
       setRotate($);
     });
   });
 })(jQuery);
 
-function exitHandlers($){
-  $('.winners__room').on('click',function(e){
-    e.preventDefault()
-    window.location.href = '/room/'+ ROOM_NO;
-  })
-  $('.winners__exit').on('click',function(e){
-    e.preventDefault()
-    window.location.href = '/'
-  })
+function exitHandlers($) {
+  $(".winners__room").on("click", function (e) {
+    e.preventDefault();
+    window.location.href = "/room/" + ROOM_NO;
+  });
+  $(".winners__exit").on("click", function (e) {
+    e.preventDefault();
+    window.location.href = "/";
+  });
 }
 function setRotate($) {
-  screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
+  screenOrientation = $(window).width() > $(window).height() ? 90 : 0;
   // 90 means landscape, 0 means portrait
   if (screenOrientation === 0) {
-    $('.rotate').removeClass('rotate-hide');
-  }
-  else {
-    $('.rotate').addClass('rotate-hide');
+    $(".rotate").removeClass("rotate-hide");
+  } else {
+    $(".rotate").addClass("rotate-hide");
   }
 }
 function soundIntrupt(sound) {
@@ -63,7 +62,7 @@ function soundIntrupt(sound) {
   if (!music_stoped) {
     music.voloum = 0.01;
   }
-  $('#' + sound)[0].play();
+  $("#" + sound)[0].play();
   setTimeout(function () {
     if (!music_stoped) {
       music.voloum = 1;
@@ -75,12 +74,12 @@ function game_over(data) {
   if (data.leaved) {
     leaved(data);
     addLeaveMessage(data.leaved_msg);
-    if(data.memeber===me){   //member denotes who leaved the game
+    if (data.memeber === me) {
+      //member denotes who leaved the game
       window.location.href = "/";
       return;
     }
-  }
-  else if (data.win) {
+  } else if (data.win) {
     move(data, data.position);
   }
   setTimeout(function () {
@@ -97,25 +96,24 @@ function game_over(data) {
         return;
       }
       t--;
-      $('.winners__time').text(t);
+      $(".winners__time").text(t);
     }, 1000);
   }, 2000);
-
 }
 
 function addLeaveMessage(leaved_msg) {
-  $('.winners__leaved').text(leaved_msg);
+  $(".winners__leaved").text(leaved_msg);
 }
 
 function showWinners(winners) {
-  $('.backdrop').removeClass('hide-backdrop');
+  $(".backdrop").removeClass("hide-backdrop");
   data = "";
   winners.forEach((winner) => {
     data += getWinner(winner);
   });
   $(".winners__wrapper").html(data);
-  $('.winners').slideDown(500, function () {
-    $('.winner_animate_div').addClass('winner_animate');
+  $(".winners").slideDown(500, function () {
+    $(".winner_animate_div").addClass("winner_animate");
   });
 }
 
@@ -133,11 +131,11 @@ function getWinner(winner) {
 
 function leaved(data) {
   if (data.member === me) {
-    if(data.remove){
+    if (data.remove) {
       // this code may not be needed
-      notification('you are removed');
+      notification("you are removed");
     }
-    return (window.location.href = "/room/"+ROOM_NO);
+    return (window.location.href = "/room/" + ROOM_NO);
   }
   $(`#p_${data.member}`).addClass("disable");
   $(`#l_${data.member}`).addClass("disable");
@@ -170,9 +168,9 @@ function message(data) {
 }
 
 function player_not_joined(data) {
-  data.players.forEach(player => {
-    if (player.member===me){
-      $('.loading_msg').html('Unable to Connect, Redirecting to room in 2sec');
+  data.players.forEach((player) => {
+    if (player.member === me) {
+      $(".loading_msg").html("Unable to Connect, Redirecting to room in 2sec");
       setTimeout(function () {
         window.location.href = "/room/" + ROOM_NO;
       }, 2000);
@@ -182,20 +180,18 @@ function player_not_joined(data) {
       // remove spinner
       $(".spiner").remove();
     }
-    setTimeout(function(){      
-    $(`#p_${player.member}`).addClass("disable");
-    $(`#l_${player.member}`).addClass("disable");    
-    online({'member':player.member,'status':false});
-    notification(player.member+' was removed due to network');
-    },1000);
-
+    setTimeout(function () {
+      $(`#p_${player.member}`).addClass("disable");
+      $(`#l_${player.member}`).addClass("disable");
+      online({ member: player.member, status: false });
+      notification(player.member + " was removed due to network");
+    }, 1000);
   });
-  notification('Redirecting to room in 4sec');
+  notification("Redirecting to room in 4sec");
   setTimeout(function () {
     window.location.href = "/room/" + ROOM_NO;
   }, 4000);
 }
-
 
 function sendMessage() {
   msg = $("#message").val();
@@ -223,27 +219,26 @@ $("#message").on("keyup", (event) => {
       );
     }
   }
-
 });
 
-function remove_players(players){
-  players.forEach(player => {
-    if (player.member === me){
-      window.location.href='/';
+function remove_players(players) {
+  players.forEach((player) => {
+    if (player.member === me) {
+      window.location.href = "/";
       return;
     }
     $(`#p_${player.member}`).addClass("disable");
-    $(`#l_${player.member}`).addClass("disable");    
-    online({'member':player.member,'status':false});
-    notification(player.member+' was removed due to network');
+    $(`#l_${player.member}`).addClass("disable");
+    online({ member: player.member, status: false });
+    notification(player.member + " was removed due to network");
   });
 }
 
 function leave() {
   clearTimer();
-  clearTimeout(change_player_timer);  
-  $('.backdrop').removeClass('hide-backdrop');
-  $('.backdrop').append('<div class="loader"></div>');
+  clearTimeout(change_player_timer);
+  $(".backdrop").removeClass("hide-backdrop");
+  $(".backdrop").append('<div class="loader"></div>');
   socket.send(
     JSON.stringify({
       action: "leave",
@@ -275,14 +270,14 @@ function startTimer() {
 }
 
 function showState() {
-  // it will show state 
+  // it will show state
   current_player.innerText = state.current_player;
 }
 
 function win(data) {
-  $('#l_' + data.winner).append(`<div class='player__rank'>${data.rank}</div>`);
+  $("#l_" + data.winner).append(`<div class='player__rank'>${data.rank}</div>`);
   if (me === data.winner) {
-    $('#play').addClass('disable');
+    $("#play").addClass("disable");
   }
 }
 
@@ -299,10 +294,8 @@ function started(data) {
     // setTimeout(play,2000);
   } else {
     no_respose_timer = setTimeout(function () {
-      socket.send(
-        JSON.stringify({ action: "check_state", old_state: state })
-      );
-    }, state.time * 1000 + 2000 + player_no*1000);
+      socket.send(JSON.stringify({ action: "check_state", old_state: state }));
+    }, state.time * 1000 + 2000 + player_no * 1000);
   }
 }
 
@@ -317,7 +310,6 @@ function play(e) {
     notification("wait for your turn");
     soundIntrupt("sound_notification");
   }
-
 }
 
 function move(data, position) {
@@ -392,29 +384,26 @@ function handle_music(event) {
     $(event.target).removeClass("on");
   }
   music_stoped = !music_stoped;
-
 }
 
 function handle_exit(event) {
-  $('.exit').addClass("show_exit");
+  $(".exit").addClass("show_exit");
   soundIntrupt("sound_notification");
   animateBtn(event.target);
-
 }
 
 document.querySelector(".stay").addEventListener("click", function () {
-  $('.exit').removeClass("show_exit");
+  $(".exit").removeClass("show_exit");
 });
 
 function handle_chat(event) {
   chat_open = !chat_open;
   if (chat_open) {
     readMessage();
-    $('#message').focus();
+    $("#message").focus();
   }
   $(document.querySelector(".chat")).toggleClass("show_chat");
   animateBtn(event.target);
-
 }
 
 function scrollBottom() {

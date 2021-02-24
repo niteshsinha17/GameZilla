@@ -18,7 +18,7 @@ const regitration_form = document.querySelector("#form");
     // initFormValidation($);
     setRotate($);
     $(window).bind("resize", function () {
-      screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
+      screenOrientation = $(window).width() > $(window).height() ? 90 : 0;
       // 90 means landscape, 0 means portrait
       setRotate($);
     });
@@ -26,13 +26,12 @@ const regitration_form = document.querySelector("#form");
 })(jQuery);
 
 function setRotate($) {
-  screenOrientation = ($(window).width() > $(window).height()) ? 90 : 0;
+  screenOrientation = $(window).width() > $(window).height() ? 90 : 0;
   // 90 means landscape, 0 means portrait
   if (screenOrientation === 0) {
-    $('.rotate').removeClass('rotate-hide');
-  }
-  else {
-    $('.rotate').addClass('rotate-hide');
+    $(".rotate").removeClass("rotate-hide");
+  } else {
+    $(".rotate").addClass("rotate-hide");
   }
 }
 
@@ -47,36 +46,38 @@ function initFormHandler($) {
     $(regitration_form).removeClass("active");
     $(regitration_form).addClass("hide");
   }
-  $('#login_btn').click(function () {
+  $("#login_btn").click(function () {
     // slide down the registration page
     hideRegister($);
   });
 
-  $('#register_btn').click(function () {
+  $("#register_btn").click(function () {
     // slide up the registration page
     showRegister($);
   });
 
-  $('#registration_form input').on('focus', function () {
-    if (!$(register).hasClass('active')) {
+  $("#registration_form input").on("focus", function () {
+    if (!$(register).hasClass("active")) {
       showRegister($);
     }
   });
 
-  $('#btn_register').click(function (e) {
-    if($('#id_username').val().split(" ").join('').length!=$('#id_username').val().length){
+  $("#btn_register").click(function (e) {
+    if (
+      $("#id_username").val().split(" ").join("").length !=
+      $("#id_username").val().length
+    ) {
       showMessage("Don't use <space> in username");
       e.preventDefault();
       return;
     }
-    if ($('#id_password1').val() !== $('#id_password2').val()) {
+    if ($("#id_password1").val() !== $("#id_password2").val()) {
       showMessage("password doesn't match");
       e.preventDefault();
       return;
     }
   });
 }
-
 
 function showMessage(msg, css = null) {
   let m = document.createElement("div");
@@ -85,7 +86,7 @@ function showMessage(msg, css = null) {
   if (css) {
     $(m).css(css);
   }
-  $('body').append(m);
+  $("body").append(m);
   setTimeout(function () {
     $(m).slideUp(500, function () {
       $(m).remove();
@@ -106,24 +107,20 @@ function initSlider($) {
 }
 
 function initFormValidation($) {
-  $('#id_username').on('keyup', function (e) {
+  $("#id_username").on("keyup", function (e) {
     let value = e.target.value;
-    if (value.length < 5 | value.length > 8) {
-      $(e.target).css('border', '1px solid red');
-    }
-    else {
-      $(e.target).css('border', '1px solid #ccd0d5');
-
+    if ((value.length < 5) | (value.length > 8)) {
+      $(e.target).css("border", "1px solid red");
+    } else {
+      $(e.target).css("border", "1px solid #ccd0d5");
     }
   });
 
-  $('#id_password2').on('keyup', function (e) {
-    if (e.target.value !== $('#id_password1').val()) {
-      $(e.target).css('border', '1px solid red');
-    }
-    else {
-      $(e.target).css('border', '1px solid #ccd0d5');
-
+  $("#id_password2").on("keyup", function (e) {
+    if (e.target.value !== $("#id_password1").val()) {
+      $(e.target).css("border", "1px solid red");
+    } else {
+      $(e.target).css("border", "1px solid #ccd0d5");
     }
   });
 }

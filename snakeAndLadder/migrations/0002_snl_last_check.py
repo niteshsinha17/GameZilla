@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('snakeAndLadder', '0001_initial'),
+        ("snakeAndLadder", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='snl',
-            name='last_check',
+            model_name="snl",
+            name="last_check",
             field=models.FloatField(blank=True, null=True),
         ),
     ]

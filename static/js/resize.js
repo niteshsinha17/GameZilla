@@ -40,7 +40,6 @@ function initOnResize($) {
   });
 }
 
-
 function arrageGames(n) {
   document.querySelectorAll(".row").forEach((element) => {
     element.remove();

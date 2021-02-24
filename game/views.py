@@ -19,6 +19,14 @@ from .forms import ReportForm
 
 # Create your views here.
 
+@login_required
+def new_home(request):
+    return render(request,'game/new_home.html')
+
+@login_required
+def profile(request):
+    return render(request,'account/profile.html')
+
 
 @login_required
 def home(request):

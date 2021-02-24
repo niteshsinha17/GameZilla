@@ -38,6 +38,8 @@ urlpatterns = [
     path("leave/<slug:sp_id>/", game_views.leave),
     # You MUST use an empty string as the URL prefix
     path("", include("pwa.urls")),
+    path("new-home/",game_views.new_home),
+    path("profile/",game_views.profile)
 ]
 
 if settings.DEBUG:

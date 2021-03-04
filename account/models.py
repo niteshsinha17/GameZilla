@@ -21,7 +21,7 @@ class ProfileModel(models.Model):
     user=models.OneToOneField(User,on_delete=models.CASCADE,related_name="Profile")
     coins=models.PositiveIntegerField(default=0)
     gender=models.CharField(max_length=1,choices=GENDER_CHOICES)
-    DOB=models.DateField(default=timezone.now())
+    DOB=models.DateField(default=timezone.now)
     TotalPlayCount=models.PositiveIntegerField(default=0)
     MatchesWon=models.PositiveIntegerField(default=0)
     MatchesDraw=models.PositiveIntegerField(default=0)

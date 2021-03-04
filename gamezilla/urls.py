@@ -22,6 +22,7 @@ from snakeAndLadder import views as SNL_views
 from ticTacToe import views as TAC_views
 from django.conf import settings
 from django.conf.urls.static import static
+from account.views import profile
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -39,7 +40,7 @@ urlpatterns = [
     # You MUST use an empty string as the URL prefix
     path("", include("pwa.urls")),
     path("new-home/",game_views.new_home),
-    path("profile/",game_views.profile)
+   path("profile/",profile,name="profile")
 ]
 
 if settings.DEBUG:

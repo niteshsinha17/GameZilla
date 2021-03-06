@@ -51,7 +51,7 @@ def register(request):
     context["show"] = show
     return render(request, "account/register.html", context)
 
-
+@login_required
 def profile(request):
     context={}
     UserProfile=get_object_or_404(ProfileModel,user=request.user)

@@ -1,5 +1,5 @@
 import time
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 
 # from account.models import User
 from django.contrib.auth.models import User
@@ -14,10 +14,9 @@ from channels.layers import get_channel_layer
 from django.db.models import Q
 from snakeAndLadder.models import SNL
 from ticTacToe.models import TAC
-
 from .forms import ReportForm
+from account.models import Profile
 
-# Create your views here.
 
 @login_required
 def new_home(request):
@@ -25,7 +24,11 @@ def new_home(request):
 
 @login_required
 def profile(request):
-    return render(request,'account/profile.html')
+    context={}
+    UserProfile=get_object_or_404(Profile,user=request.user)
+    context["username"]=UserProfile.user
+    context["user"]=UserProfile
+    return render(request,'account/profile.html',context)
 
 
 @login_required

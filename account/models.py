@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from django.contrib.auth.models import User
 
-class ProfileModel(models.Model):
+class Profile(models.Model):
     GENDER_CHOICES=(
        ('M',"Male"),
        ('F',"Female"),
@@ -21,11 +21,11 @@ class ProfileModel(models.Model):
     user=models.OneToOneField(User,on_delete=models.CASCADE,related_name="Profile")
     coins=models.PositiveIntegerField(default=0)
     gender=models.CharField(max_length=1,choices=GENDER_CHOICES)
-    DOB=models.DateField(default=timezone.now)
-    TotalPlayCount=models.PositiveIntegerField(default=0)
-    MatchesWon=models.PositiveIntegerField(default=0)
-    MatchesDraw=models.PositiveIntegerField(default=0)
-    MatchesLost=models.PositiveIntegerField(default=0)
+    dob=models.DateField(null=True,blank=True)
+    total_play_count=models.PositiveIntegerField(default=0)
+    matches_won=models.PositiveIntegerField(default=0)
+    matches_draw=models.PositiveIntegerField(default=0)
+    matches_lost=models.PositiveIntegerField(default=0)
 
 
     def __str__(self):

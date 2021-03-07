@@ -23,6 +23,7 @@ from ticTacToe import views as TAC_views
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", game_views.home, name="home"),
@@ -39,7 +40,7 @@ urlpatterns = [
     # You MUST use an empty string as the URL prefix
     path("", include("pwa.urls")),
     path("new-home/",game_views.new_home),
-    path("profile/",game_views.profile)
+   path("profile/",game_views.profile,name="profile")
 ]
 
 if settings.DEBUG:

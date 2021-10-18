@@ -53,8 +53,7 @@ Install your forked repo:
 Install requirements.txt:
 
 ```shell
-    git clone git://github.com/<your_fork>/GameZilla
-    cd GameZilla/
+    pip install requirements.txt
 ```
 
 Create Database:

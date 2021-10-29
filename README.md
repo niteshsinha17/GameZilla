@@ -5,7 +5,7 @@ create their own room or join others room to play game together.
 
 ---
 
-Live at [gamezilla.fun](https://gamezilla.fun)
+<!-- Live at [gamezilla.fun](https://gamezilla.fun) -->
 
 ---
 

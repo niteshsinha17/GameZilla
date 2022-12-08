@@ -13,16 +13,16 @@ create their own room or join others room to play game together.
 
 - Can create maximum of three rooms at a time
 - Can join any number of room.
-- Share link with friends to join your room. ![](GitHub/invite.gif)
+- Share link with friends to join your room. ![image](https://drive.google.com/uc?export=view&id=1mlaUmgLiJfv6LWd0uKbEPh6ggBqPcwNZ)
 - Can also share **Game Id** with friends.
 - Player can leave room/game at any time.
 - No need to join game always from link or Game Id. Shortcut is automatically
   created at Home page to join room/game. You can also leave any game through
-  the shortcut also. ![](GitHub/shortcut.gif)
+  the shortcut also. ![image](https://drive.google.com/uc?export=view&id=1VGzWtcTawg0ygWAbaxz0_NRmK6fS_WsA)
 - Host can remove any player from room before starting the game.
 - Host can start game only when all members of the room are **ready**.
-- Host can change the game inside the room. ![](GitHub/change.gif)
-- Players can chat between the game. ![](GitHub/chat.jpeg)
+- Host can change the game inside the room. ![image](https://drive.google.com/uc?export=view&id=1ybjLSHTGCYoOt883kPNhZXncdLZc9uTj)
+- Players can chat between the game. ![image](https://drive.google.com/uc?export=view&id=1ojl0mq8ZxzRSjmvIfRd2ya273rdiz38I)
 
 ---
 
@@ -30,11 +30,11 @@ create their own room or join others room to play game together.
 
 ### Snake And Ladder
 
-![](GitHub/snl.jpeg)
+![image](https://drive.google.com/uc?export=view&id=1kY_ZHKhCj7stWXPeBz2OAyyosamQmofB)
 
 ### Tic Tac Toe
 
-![](GitHub/tac.jpeg)
+![image](https://drive.google.com/uc?export=view&id=1ETx1vPcse01oQIOzDn1Lu5X3uFsETN3E)
 
 ---
 
@@ -83,7 +83,8 @@ Any One willing to contribute in this project and wants their games to be hosted
 on the gamezilla platform are welcomed.
 
 **_Please follow below points before creating any PR._**
-- Add upstream and always create new branch from ``upstream/development`` not from ``upstream/master``.
+
+- Add upstream and always create new branch from `upstream/development` not from `upstream/master`.
 - Run `./gamezilla-qa-format` after making all changes.
 - Format your JavaScript and CSS files with `prettier`.
 - Run `./run-checks`. Fixed errors shown in the terminal if any.
